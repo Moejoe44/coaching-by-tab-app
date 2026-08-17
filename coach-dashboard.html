@@ -1,0 +1,1805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coaching by Tab · Coach Dashboard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=Inter:wght@300;400;500;600;700&display=swap');
+  :root{
+    --plum:#6D567F;--plum-deep:#5c4a6b;--purple-mid:#8b7d9b;--purple-rich:#8e6894;--purple-light:#b298b6;
+    --white:#ffffff;--bg:#f4f1f7;--paper:#ffffff;--border:#e6ddec;--text:#2a1f2d;--muted:#8a7a90;--ink-soft:#5a4a60;
+    --green:#5f8f6b;--green-bg:#eef4ef;--amber:#b08842;--amber-bg:#f8f1e5;
+    --red:#b0574f;--red-bg:#f8ebea;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.5;-webkit-font-smoothing:antialiased;}
+  .app{max-width:1200px;margin:0 auto;display:flex;min-height:100vh;}
+
+  /* ── SIDEBAR ── */
+  .sidebar{width:230px;background:linear-gradient(175deg,var(--plum) 0%,var(--plum-deep) 100%);color:var(--white);padding:28px 18px;flex-shrink:0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;}
+  .sb-brand{font-family:'Fraunces',serif;font-size:20px;font-weight:600;margin-bottom:3px;}
+  .sb-brand em{font-style:italic;color:var(--purple-light);}
+  .sb-tag{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--purple-light);margin-bottom:34px;}
+  .sb-nav{display:flex;flex-direction:column;gap:4px;flex:1;}
+  .sb-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;color:rgba(255,255,255,0.72);font-size:14px;font-weight:500;cursor:pointer;border:none;background:none;font-family:'Inter';text-align:left;width:100%;transition:all 0.15s;}
+  .sb-item:hover{background:rgba(255,255,255,0.08);color:var(--white);}
+  .sb-item.on{background:rgba(255,255,255,0.14);color:var(--white);}
+  .sb-ico{font-size:17px;width:20px;text-align:center;}
+  .sb-count{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;}
+  .sb-foot{border-top:1px solid rgba(255,255,255,0.12);padding-top:16px;margin-top:16px;display:flex;align-items:center;gap:11px;}
+  .sb-ava{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--purple-light),var(--purple-rich));display:flex;align-items:center;justify-content:center;font-family:'Fraunces';font-weight:600;font-size:15px;}
+  .sb-name{font-size:13px;font-weight:600;}
+  .sb-role{font-size:10.5px;color:var(--purple-light);}
+
+  /* ── MAIN ── */
+  .main{flex:1;padding:34px 40px;overflow-y:auto;min-width:0;}
+  .page{display:none;}
+  .page.on{display:block;animation:fade 0.3s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+  .page-head{margin-bottom:28px;}
+  .page-title{font-family:'Fraunces',serif;font-size:30px;font-weight:600;color:var(--plum);letter-spacing:-0.4px;}
+  .page-title em{font-style:italic;color:var(--purple-rich);font-weight:400;}
+  .page-sub{font-size:14px;color:var(--muted);margin-top:5px;}
+
+  .sec-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--purple-rich);font-weight:600;margin:30px 0 14px;display:flex;justify-content:space-between;align-items:baseline;}
+  .link-btn{font-size:11px;letter-spacing:0.5px;color:var(--purple-mid);font-weight:600;text-transform:none;cursor:pointer;background:none;border:none;font-family:'Inter';}
+
+  /* ── STAT CARDS ── */
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+  .statc{background:var(--paper);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:0 3px 12px rgba(50,37,52,0.04);}
+  .statc-label{font-size:11px;letter-spacing:0.8px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:10px;}
+  .statc-num{font-family:'Fraunces',serif;font-size:32px;font-weight:600;color:var(--plum);line-height:1;}
+  .statc-num.red{color:var(--red);}
+  .statc-num.green{color:var(--green);}
+  .statc-sub{font-size:11.5px;color:var(--ink-soft);margin-top:7px;}
+
+  /* ── QUEUE ── */
+  .queue-card{background:var(--paper);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 3px 12px rgba(50,37,52,0.04);}
+  .q-row{display:flex;align-items:center;gap:16px;padding:16px 20px;border-bottom:1px solid #f2ecf6;cursor:pointer;transition:background 0.14s;}
+  .q-row:last-child{border-bottom:none;}
+  .q-row:hover{background:#faf8fc;}
+  .q-flag{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+  .flag-red{background:var(--red);box-shadow:0 0 0 4px rgba(176,87,79,0.14);}
+  .flag-amber{background:var(--amber);box-shadow:0 0 0 4px rgba(176,136,66,0.14);}
+  .flag-green{background:var(--green);box-shadow:0 0 0 4px rgba(95,143,107,0.14);}
+  .q-ava{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--purple-light),var(--purple-rich));display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Fraunces';font-weight:600;font-size:15px;flex-shrink:0;}
+  .q-info{flex:1;min-width:0;}
+  .q-name{font-size:15px;font-weight:600;color:var(--text);}
+  .q-detail{font-size:12.5px;color:var(--muted);margin-top:2px;}
+  .q-status{font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;padding:5px 12px;border-radius:20px;white-space:nowrap;}
+  .st-red{background:var(--red-bg);color:var(--red);}
+  .st-amber{background:var(--amber-bg);color:var(--amber);}
+  .st-green{background:var(--green-bg);color:var(--green);}
+  .q-time{font-size:11.5px;color:var(--muted);white-space:nowrap;}
+
+  /* ── TWO COL ── */
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .panel{background:var(--paper);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:0 3px 12px rgba(50,37,52,0.04);}
+  .panel-h{font-family:'Fraunces',serif;font-size:17px;font-weight:600;color:var(--plum);margin-bottom:16px;}
+  .sched-item{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid #f2ecf6;}
+  .sched-item:last-child{border-bottom:none;}
+  .sched-time{font-family:'Fraunces';font-size:14px;font-weight:600;color:var(--plum);width:64px;flex-shrink:0;}
+  .sched-what{flex:1;}
+  .sched-title{font-size:13.5px;font-weight:600;color:var(--text);}
+  .sched-with{font-size:11.5px;color:var(--muted);}
+  .sched-type{font-size:9px;letter-spacing:1px;text-transform:uppercase;font-weight:700;padding:4px 9px;border-radius:12px;background:#f2ecf6;color:var(--purple-rich);}
+
+  /* ── ROSTER ── */
+  .roster-tools{display:flex;gap:12px;margin-bottom:18px;}
+  .search{flex:1;padding:11px 16px;border:1.5px solid var(--border);border-radius:10px;font-family:'Inter';font-size:14px;background:var(--paper);color:var(--text);outline:none;}
+  .search:focus{border-color:var(--purple-mid);}
+  .roster-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+  .rc{background:var(--paper);border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:0 3px 12px rgba(50,37,52,0.04);cursor:pointer;transition:all 0.14s;}
+  .rc:hover{border-color:var(--purple-light);box-shadow:0 6px 18px rgba(50,37,52,0.08);}
+  .rc-top{display:flex;align-items:center;gap:13px;margin-bottom:14px;}
+  .rc-ava{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--purple-light),var(--purple-rich));display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Fraunces';font-weight:600;font-size:17px;flex-shrink:0;}
+  .rc-name{font-size:15px;font-weight:600;color:var(--text);}
+  .rc-meta{font-size:11.5px;color:var(--muted);margin-top:2px;}
+  .rc-flagdot{width:10px;height:10px;border-radius:50%;margin-left:auto;flex-shrink:0;}
+  .rc-stats{display:flex;gap:16px;padding-top:14px;border-top:1px solid #f2ecf6;}
+  .rc-stat{flex:1;}
+  .rc-stat-num{font-family:'Fraunces';font-size:17px;font-weight:600;color:var(--plum);}
+  .rc-stat-lbl{font-size:10px;letter-spacing:0.5px;text-transform:uppercase;color:var(--muted);margin-top:2px;}
+
+  /* ── CLIENT DETAIL ── */
+  .back-btn{display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:var(--purple-rich);font-family:'Inter';font-size:13px;font-weight:600;cursor:pointer;margin-bottom:18px;padding:4px 0;}
+  .detail-head{display:flex;align-items:center;gap:18px;margin-bottom:26px;}
+  .dh-ava{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--purple-light),var(--purple-rich));display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Fraunces';font-weight:600;font-size:26px;flex-shrink:0;}
+  .dh-name{font-family:'Fraunces',serif;font-size:24px;font-weight:600;color:var(--plum);}
+  .dh-meta{font-size:13px;color:var(--muted);margin-top:3px;}
+  .dh-actions{margin-left:auto;display:flex;gap:10px;}
+  .btn-sm{padding:9px 16px;border-radius:9px;font-size:12.5px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--paper);color:var(--plum);font-family:'Inter';transition:all 0.14s;}
+  .btn-sm:hover{border-color:var(--purple-mid);}
+  .btn-sm.primary{background:var(--plum);color:#fff;border-color:var(--plum);}
+  .detail-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:20px;}
+  .dim{margin-bottom:11px;}
+  .dim-row{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;}
+  .dim-name{color:var(--ink-soft);font-weight:500;}
+  .dim-pct{color:var(--plum);font-weight:600;}
+  .dim-track{height:6px;background:#efe8f3;border-radius:3px;overflow:hidden;}
+  .dim-fill{height:100%;border-radius:3px;}
+  .fill-hi{background:linear-gradient(90deg,var(--green),#7aa886);}
+  .fill-mid{background:linear-gradient(90deg,var(--purple-rich),var(--purple-mid));}
+  .fill-lo{background:linear-gradient(90deg,var(--amber),#c9a266);}
+  .note-box{background:#f7f2fa;border:1px solid var(--border);border-radius:10px;padding:14px;font-size:13px;color:var(--ink-soft);line-height:1.6;margin-top:10px;}
+  .note-box .note-lbl{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--purple-rich);font-weight:700;margin-bottom:6px;}
+  .refl-item{padding:13px 0;border-bottom:1px solid #f2ecf6;}
+  .refl-item:last-child{border-bottom:none;}
+  .refl-wk{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+  .refl-wk-lbl{font-size:11px;letter-spacing:0.5px;text-transform:uppercase;color:var(--muted);font-weight:600;}
+  .refl-txt{font-size:12.5px;color:var(--ink-soft);line-height:1.55;font-style:italic;}
+
+  /* ── ANNOUNCEMENTS COMPOSE ── */
+  .compose{background:var(--paper);border:1px solid var(--border);border-radius:14px;padding:22px;box-shadow:0 3px 12px rgba(50,37,52,0.04);margin-bottom:22px;}
+  .field-lbl{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:8px;display:block;}
+  .ta,.inp{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Inter';font-size:14px;background:var(--bg);color:var(--text);outline:none;transition:border 0.15s;margin-bottom:16px;}
+  .ta{resize:none;min-height:90px;line-height:1.6;}
+  .ta:focus,.inp:focus{border-color:var(--purple-mid);background:var(--white);}
+  .seg{display:flex;gap:8px;margin-bottom:16px;}
+  .seg-btn{flex:1;padding:10px;border:1.5px solid var(--border);border-radius:9px;background:var(--bg);font-size:12.5px;font-weight:600;color:var(--muted);cursor:pointer;font-family:'Inter';transition:all 0.14s;}
+  .seg-btn.on{border-color:var(--purple-rich);background:#f5eef8;color:var(--purple-rich);}
+  .btn-post{background:var(--plum);color:#fff;border:none;border-radius:10px;padding:13px 26px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Inter';}
+  .btn-post:active{background:var(--plum-deep);}
+  .past-ann{background:var(--paper);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:12px;}
+  .pa-top{display:flex;justify-content:space-between;margin-bottom:6px;}
+  .pa-audience{font-size:9px;letter-spacing:1px;text-transform:uppercase;font-weight:700;color:var(--purple-rich);background:#f2ecf6;padding:3px 9px;border-radius:10px;}
+  .pa-date{font-size:11px;color:var(--muted);}
+  .pa-text{font-size:13px;color:var(--ink-soft);line-height:1.55;}
+
+  /* ══════ WORKOUT BUILDER ══════ */
+  .builder{display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start;}
+  .builder-main{min-width:0;}
+  .block-bar{display:flex;align-items:center;gap:14px;background:var(--paper);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:16px;box-shadow:0 3px 12px rgba(50,37,52,0.04);}
+  .block-name{font-family:'Fraunces';font-size:18px;font-weight:600;color:var(--plum);}
+  .block-meta{font-size:12px;color:var(--muted);margin-top:2px;}
+  .tmpl-btn{margin-left:auto;padding:9px 15px;border:1.5px dashed var(--purple-light);border-radius:9px;background:none;color:var(--purple-rich);font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter';}
+  .week-tabs{display:flex;gap:8px;margin-bottom:16px;}
+  .week-tab{padding:9px 18px;border-radius:9px;border:1.5px solid var(--border);background:var(--paper);font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;font-family:'Inter';transition:all 0.14s;}
+  .week-tab.on{background:var(--plum);color:#fff;border-color:var(--plum);}
+  .day-block{background:var(--paper);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:14px;box-shadow:0 3px 12px rgba(50,37,52,0.04);}
+  .day-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .day-title{font-size:14px;font-weight:600;color:var(--plum);}
+  .day-tagn{font-size:11px;color:var(--muted);}
+  .day-add{margin-left:auto;font-size:11px;color:var(--purple-rich);font-weight:600;cursor:pointer;background:none;border:none;font-family:'Inter';}
+  .bex{display:flex;align-items:center;gap:12px;padding:11px 12px;border:1px solid var(--border);border-radius:10px;margin-bottom:9px;background:var(--bg);}
+  .bex:last-child{margin-bottom:0;}
+  .bex-drag{color:var(--purple-light);font-size:15px;cursor:grab;}
+  .bex-thumb{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,var(--plum),var(--purple-rich));flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;}
+  .bex-thumb::after{content:'\25B6';}
+  .bex-info{flex:1;min-width:0;}
+  .bex-name{font-size:13px;font-weight:600;color:var(--text);}
+  .bex-pattern{font-size:8.5px;letter-spacing:0.8px;text-transform:uppercase;color:var(--purple-mid);font-weight:600;}
+  .bex-scheme{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;}
+  .scheme-chip{font-size:10px;background:#f2ecf6;color:var(--purple-rich);padding:2px 7px;border-radius:6px;font-weight:600;}
+  .bex-x{color:var(--muted);font-size:15px;cursor:pointer;background:none;border:none;padding:2px 4px;}
+  .empty-day{text-align:center;padding:18px;color:var(--muted);font-size:12.5px;font-style:italic;}
+
+  /* library panel */
+  .lib{background:var(--paper);border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:0 3px 12px rgba(50,37,52,0.04);position:sticky;top:20px;}
+  .lib-h{font-family:'Fraunces';font-size:15px;font-weight:600;color:var(--plum);margin-bottom:4px;}
+  .lib-sub{font-size:11.5px;color:var(--muted);margin-bottom:14px;line-height:1.5;}
+  .lib-search{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;font-family:'Inter';font-size:13px;background:var(--bg);outline:none;margin-bottom:12px;}
+  .lib-search:focus{border-color:var(--purple-mid);}
+  .lib-filters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+  .lib-filt{font-size:10.5px;padding:5px 10px;border-radius:20px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;font-weight:600;transition:all 0.14s;}
+  .lib-filt.on{background:var(--plum);color:#fff;border-color:var(--plum);}
+  .lib-ex{display:flex;align-items:center;gap:10px;padding:9px;border-radius:9px;cursor:pointer;transition:background 0.14s;margin-bottom:2px;}
+  .lib-ex:hover{background:#faf5fc;}
+  .lib-ex-thumb{width:30px;height:30px;border-radius:7px;background:#e8e0ef;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--purple-rich);font-size:9px;}
+  .lib-ex-thumb::after{content:'\25B6';}
+  .lib-ex-name{font-size:12.5px;font-weight:600;color:var(--text);}
+  .lib-ex-pat{font-size:8.5px;letter-spacing:0.8px;text-transform:uppercase;color:var(--purple-mid);font-weight:600;}
+  .lib-ex-add{margin-left:auto;color:var(--purple-rich);font-size:17px;font-weight:700;}
+  .lib-new{width:100%;margin-top:12px;padding:11px;border:1.5px dashed var(--purple-light);border-radius:9px;background:none;color:var(--purple-rich);font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter';}
+
+  .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--plum);color:#fff;padding:13px 24px;border-radius:30px;font-size:13px;font-weight:600;box-shadow:0 8px 28px rgba(50,37,52,0.3);opacity:0;transition:all 0.3s;z-index:100;}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+
+  .demo-note{max-width:1200px;margin:0 auto;padding:14px 40px 30px;text-align:center;font-size:11px;color:var(--muted);line-height:1.5;}
+  /* ── LENS AI ── */
+  .lens-badge{display:inline-flex;align-items:center;gap:6px;font-size:10px;letter-spacing:1px;text-transform:uppercase;font-weight:700;color:var(--purple-rich);background:#f2ecf6;padding:4px 10px;border-radius:20px;}
+  .lens-badge .spark{font-size:11px;}
+  .lens-panel{background:linear-gradient(160deg,#f7f2fa,#ffffff);border:1px solid var(--purple-light);border-radius:14px;padding:20px;box-shadow:0 3px 14px rgba(109,86,127,0.08);}
+  .lens-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .lens-title{display:flex;align-items:center;gap:9px;font-family:'Fraunces';font-size:16px;font-weight:600;color:var(--plum);}
+  .lens-orb{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--purple-light),var(--purple-rich));display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;}
+  .lens-window{display:flex;gap:5px;}
+  .lens-win{font-size:10.5px;padding:5px 10px;border-radius:16px;border:1px solid var(--border);background:var(--paper);color:var(--muted);cursor:pointer;font-weight:600;transition:all 0.14s;font-family:'Inter';}
+  .lens-win.on{background:var(--plum);color:#fff;border-color:var(--plum);}
+  .lens-body{font-size:13px;color:var(--ink-soft);line-height:1.65;}
+  .lens-body strong{color:var(--plum);}
+  .lens-insight{padding:11px 0;border-bottom:1px solid #ece4f1;display:flex;gap:10px;}
+  .lens-insight:last-child{border-bottom:none;}
+  .lens-dot{width:7px;height:7px;border-radius:50%;margin-top:6px;flex-shrink:0;}
+  .ld-pos{background:var(--green);}
+  .ld-watch{background:var(--amber);}
+  .ld-flag{background:var(--red);}
+  .lens-feedback{display:flex;align-items:center;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid #ece4f1;}
+  .lens-fb-lbl{font-size:11px;color:var(--muted);}
+  .fb-btn{width:30px;height:30px;border-radius:8px;border:1.5px solid var(--border);background:var(--paper);cursor:pointer;font-size:14px;transition:all 0.14s;}
+  .fb-btn:hover{border-color:var(--purple-mid);}
+  .fb-btn.up.on{background:var(--green-bg);border-color:var(--green);}
+  .fb-btn.down.on{background:var(--red-bg);border-color:var(--red);}
+  .lens-tabs{display:flex;gap:6px;margin-bottom:14px;}
+  .lens-tab{font-size:11.5px;padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);background:var(--paper);color:var(--muted);cursor:pointer;font-weight:600;font-family:'Inter';transition:all 0.14s;}
+  .lens-tab.on{background:#f5eef8;border-color:var(--purple-rich);color:var(--purple-rich);}
+  .draft-box{background:var(--paper);border:1.5px solid var(--border);border-radius:11px;padding:15px;margin-top:12px;}
+  .draft-meta{font-size:10px;letter-spacing:0.5px;text-transform:uppercase;color:var(--purple-rich);font-weight:700;margin-bottom:9px;display:flex;align-items:center;gap:6px;}
+  .draft-text{font-size:13px;color:var(--text);line-height:1.65;white-space:pre-wrap;}
+  .draft-actions{display:flex;gap:9px;margin-top:14px;}
+  .draft-actions .btn-sm{flex:0 0 auto;}
+  .lens-gen{width:100%;background:var(--plum);color:#fff;border:none;border-radius:10px;padding:12px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter';margin-top:4px;}
+  .lens-gen:active{background:var(--plum-deep);}
+  /* hub */
+  .hub-risk{background:var(--paper);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 3px 12px rgba(50,37,52,0.04);}
+  .hub-row{display:flex;align-items:center;gap:14px;padding:15px 20px;border-bottom:1px solid #f2ecf6;}
+  .hub-row:last-child{border-bottom:none;}
+  .hub-info{flex:1;min-width:0;}
+  .hub-name{font-size:14px;font-weight:600;color:var(--text);}
+  .hub-insight{font-size:12px;color:var(--muted);margin-top:2px;}
+  .hub-draft-btn{padding:8px 14px;border-radius:8px;background:#f5eef8;border:1px solid var(--purple-light);color:var(--purple-rich);font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter';white-space:nowrap;}
+  .hub-draft-btn:hover{background:#efe4f5;}
+  /* ── ASK BELLAMY FLOATING CHAT ── */
+  .bell-fab{position:fixed;bottom:26px;right:26px;width:58px;height:58px;border-radius:50%;background:linear-gradient(140deg,var(--plum),var(--purple-rich));border:none;cursor:pointer;box-shadow:0 8px 26px rgba(109,86,127,0.42);display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;z-index:90;transition:transform 0.16s;}
+  .bell-fab:hover{transform:scale(1.06);}
+  .bell-fab:active{transform:scale(0.96);}
+  .bell-panel{position:fixed;bottom:26px;right:26px;width:390px;max-width:calc(100vw - 32px);height:560px;max-height:calc(100vh - 52px);background:var(--paper);border:1px solid var(--border);border-radius:20px;box-shadow:0 24px 70px rgba(50,37,52,0.32);z-index:95;display:none;flex-direction:column;overflow:hidden;}
+  .bell-panel.open{display:flex;animation:bellpop 0.24s ease;}
+  @keyframes bellpop{from{opacity:0;transform:translateY(16px) scale(0.98);}to{opacity:1;transform:none;}}
+  .bell-head{background:linear-gradient(140deg,var(--plum),var(--purple-rich));color:#fff;padding:16px 18px;display:flex;align-items:center;gap:11px;flex-shrink:0;}
+  .bell-orb{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;font-size:16px;}
+  .bell-htitle{font-family:'Fraunces';font-size:16px;font-weight:600;}
+  .bell-hsub{font-size:10.5px;color:var(--purple-light);margin-top:1px;}
+  .bell-head-actions{margin-left:auto;display:flex;gap:6px;}
+  .bell-hbtn{background:rgba(255,255,255,0.16);border:none;color:#fff;width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:13px;transition:background 0.14s;}
+  .bell-hbtn:hover{background:rgba(255,255,255,0.28);}
+  .bell-body{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px;}
+  .bell-msg{max-width:85%;font-size:13px;line-height:1.6;}
+  .bell-msg.user{align-self:flex-end;background:var(--plum);color:#fff;padding:11px 15px;border-radius:16px 16px 4px 16px;}
+  .bell-msg.user .tag{color:var(--purple-light);font-weight:600;}
+  .bell-msg.ai{align-self:flex-start;width:100%;}
+  .bell-ai-row{display:flex;gap:9px;align-items:flex-start;}
+  .bell-ai-orb{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--purple-light),var(--purple-rich));display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;flex-shrink:0;margin-top:1px;}
+  .bell-ai-bubble{background:#f5eef8;border:1px solid #ece4f1;padding:12px 15px;border-radius:4px 16px 16px 16px;color:var(--ink-soft);flex:1;}
+  .bell-ai-bubble strong{color:var(--plum);}
+  .bell-ai-fb{display:flex;gap:5px;margin-top:8px;margin-left:35px;}
+  .bell-fb{width:26px;height:26px;border-radius:7px;border:1px solid var(--border);background:var(--paper);cursor:pointer;font-size:12px;transition:all 0.14s;}
+  .bell-fb:hover{border-color:var(--purple-mid);}
+  .bell-fb.on{background:#f5eef8;border-color:var(--purple-rich);}
+  .bell-examples{display:flex;flex-direction:column;gap:8px;}
+  .bell-ex-lbl{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700;}
+  .bell-ex{text-align:left;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 13px;font-size:12.5px;color:var(--ink-soft);cursor:pointer;font-family:'Inter';transition:all 0.14s;}
+  .bell-ex:hover{border-color:var(--purple-light);background:#faf5fc;color:var(--plum);}
+  .bell-foot{border-top:1px solid var(--border);padding:12px;flex-shrink:0;}
+  .bell-suggest{font-size:11px;color:var(--purple-rich);background:#f5eef8;border-radius:8px;padding:7px 11px;margin-bottom:9px;cursor:pointer;display:none;}
+  .bell-suggest.show{display:block;}
+  .bell-inrow{display:flex;align-items:center;gap:9px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:6px 8px 6px 14px;transition:border 0.15s;}
+  .bell-inrow:focus-within{border-color:var(--purple-mid);background:var(--white);}
+  .bell-input{flex:1;border:none;background:none;outline:none;font-family:'Inter';font-size:13px;color:var(--text);padding:7px 0;}
+  .bell-mic{width:34px;height:34px;border-radius:9px;border:none;background:#f2ecf6;color:var(--purple-rich);cursor:pointer;font-size:15px;flex-shrink:0;transition:all 0.14s;}
+  .bell-mic:hover{background:#e8def0;}
+  .bell-mic.rec{background:var(--red);color:#fff;animation:pulse 1.2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.55;}}
+  .bell-send{width:34px;height:34px;border-radius:9px;border:none;background:var(--plum);color:#fff;cursor:pointer;font-size:15px;flex-shrink:0;}
+  .bell-send:active{background:var(--plum-deep);}
+  .bell-limit{font-size:9.5px;color:var(--muted);text-align:center;margin-top:8px;}
+  /* ── SUNFLOWER ICON (Bellamy) ── */
+  .sunflower{display:inline-block;width:1em;height:1em;vertical-align:-0.15em;background-repeat:no-repeat;background-position:center;background-size:contain;}
+  /* purple petals + deep-plum center, for light backgrounds */
+  .sunflower.purple{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='%238e6894'%3E%3Cellipse cx='50' cy='16' rx='8' ry='16'/%3E%3Cellipse cx='50' cy='84' rx='8' ry='16'/%3E%3Cellipse cx='16' cy='50' rx='16' ry='8'/%3E%3Cellipse cx='84' cy='50' rx='16' ry='8'/%3E%3Cellipse cx='26' cy='26' rx='8' ry='16' transform='rotate(45 26 26)'/%3E%3Cellipse cx='74' cy='26' rx='8' ry='16' transform='rotate(-45 74 26)'/%3E%3Cellipse cx='26' cy='74' rx='8' ry='16' transform='rotate(-45 26 74)'/%3E%3Cellipse cx='74' cy='74' rx='8' ry='16' transform='rotate(45 74 74)'/%3E%3C/g%3E%3Ccircle cx='50' cy='50' r='17' fill='%236D567F'/%3E%3C/svg%3E");}
+  /* light petals + white center, for use on purple orbs */
+  .sunflower.light{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='%23e8dcf0'%3E%3Cellipse cx='50' cy='16' rx='8' ry='16'/%3E%3Cellipse cx='50' cy='84' rx='8' ry='16'/%3E%3Cellipse cx='16' cy='50' rx='16' ry='8'/%3E%3Cellipse cx='84' cy='50' rx='16' ry='8'/%3E%3Cellipse cx='26' cy='26' rx='8' ry='16' transform='rotate(45 26 26)'/%3E%3Cellipse cx='74' cy='26' rx='8' ry='16' transform='rotate(-45 74 26)'/%3E%3Cellipse cx='26' cy='74' rx='8' ry='16' transform='rotate(-45 26 74)'/%3E%3Cellipse cx='74' cy='74' rx='8' ry='16' transform='rotate(45 74 74)'/%3E%3C/g%3E%3Ccircle cx='50' cy='50' r='17' fill='%23ffffff'/%3E%3C/svg%3E");}
+  /* ── MY DESK (tasks/notes) ── */
+  .desk-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
+  .task-add-row{display:flex;gap:9px;margin-bottom:14px;}
+  .task-input{flex:1;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Inter';font-size:13.5px;background:var(--bg);outline:none;transition:border 0.15s;}
+  .task-input:focus{border-color:var(--purple-mid);background:var(--white);}
+  .task-add-btn{width:42px;border:none;border-radius:10px;background:var(--plum);color:#fff;font-size:18px;cursor:pointer;flex-shrink:0;}
+  .task-add-btn:active{background:var(--plum-deep);}
+  .task-item{display:flex;align-items:flex-start;gap:11px;padding:11px 0;border-bottom:1px solid #f2ecf6;}
+  .task-item:last-child{border-bottom:none;}
+  .task-box{width:20px;height:20px;border-radius:6px;border:2px solid var(--border);cursor:pointer;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;transition:all 0.14s;}
+  .task-box.done{background:var(--green);border-color:var(--green);}
+  .task-text{font-size:13.5px;color:var(--text);line-height:1.5;flex:1;}
+  .task-item.done .task-text{color:var(--muted);text-decoration:line-through;}
+  .task-tag{font-size:9px;letter-spacing:0.5px;text-transform:uppercase;font-weight:700;padding:2px 8px;border-radius:10px;margin-top:4px;display:inline-block;}
+  .tt-client{background:#f2ecf6;color:var(--purple-rich);}
+  .tt-admin{background:var(--amber-bg);color:var(--amber);}
+  .notes-area{width:100%;min-height:340px;padding:16px;border:1.5px solid var(--border);border-radius:12px;font-family:'Inter';font-size:14px;line-height:1.7;color:var(--text);background:var(--bg);outline:none;resize:vertical;transition:border 0.15s;}
+  .notes-area:focus{border-color:var(--purple-mid);background:var(--white);}
+  .notes-saved{font-size:11px;color:var(--muted);margin-top:8px;display:flex;align-items:center;gap:5px;}
+  @media(max-width:920px){.desk-grid{grid-template-columns:1fr;}}
+  /* ── DESK CALENDAR ── */
+  .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+  .cal-month{font-family:'Fraunces';font-size:18px;font-weight:600;color:var(--plum);}
+  .cal-navs{display:flex;gap:6px;}
+  .cal-nav{width:30px;height:30px;border-radius:8px;border:1.5px solid var(--border);background:var(--paper);color:var(--plum);cursor:pointer;font-size:14px;transition:all 0.14s;}
+  .cal-nav:hover{border-color:var(--purple-mid);}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+  .cal-dow{text-align:center;font-size:10px;letter-spacing:0.5px;text-transform:uppercase;color:var(--muted);font-weight:700;padding:6px 0;}
+  .cal-cell{aspect-ratio:1/1;border-radius:9px;border:1px solid transparent;padding:5px 6px;display:flex;flex-direction:column;gap:2px;cursor:pointer;transition:all 0.14s;min-height:0;overflow:hidden;}
+  .cal-cell:hover{background:#faf5fc;}
+  .cal-cell.muted{opacity:0.35;}
+  .cal-cell.today{border-color:var(--purple-rich);background:#f7f2fa;}
+  .cal-daynum{font-size:12px;font-weight:600;color:var(--text);}
+  .cal-cell.today .cal-daynum{color:var(--plum);}
+  .cal-ev{font-size:8.5px;line-height:1.25;padding:1px 4px;border-radius:4px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ev-call{background:#f2ecf6;color:var(--purple-rich);}
+  .ev-train{background:var(--green-bg);color:var(--green);}
+  .ev-onboard{background:var(--amber-bg);color:var(--amber);}
+  .ev-more{font-size:8px;color:var(--muted);font-weight:600;}
+  .cal-legend{display:flex;gap:14px;margin-top:16px;flex-wrap:wrap;}
+  .cal-leg{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);}
+  .cal-leg-dot{width:9px;height:9px;border-radius:3px;}
+  .agenda{margin-top:6px;}
+  .agenda-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid #f2ecf6;}
+  .agenda-item:last-child{border-bottom:none;}
+  .agenda-time{font-family:'Fraunces';font-size:13px;font-weight:600;color:var(--plum);width:56px;flex-shrink:0;}
+  .agenda-what{flex:1;}
+  .agenda-title{font-size:13px;font-weight:600;color:var(--text);}
+  .agenda-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+  /* ── DESK RESOURCES ── */
+  .res-lib{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+  .res-doc{display:flex;align-items:flex-start;gap:14px;background:var(--paper);border:1px solid var(--border);border-radius:12px;padding:16px 18px;cursor:pointer;transition:all 0.14s;box-shadow:0 3px 12px rgba(50,37,52,0.04);}
+  .res-doc:hover{border-color:var(--purple-light);box-shadow:0 6px 18px rgba(50,37,52,0.08);}
+  .res-doc-ico{width:44px;height:52px;border-radius:7px;background:linear-gradient(150deg,var(--plum),var(--purple-rich));flex-shrink:0;display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px;color:#fff;font-size:8px;font-weight:700;letter-spacing:0.5px;position:relative;}
+  .res-doc-ico::before{content:'';position:absolute;top:0;right:0;border-width:0 10px 10px 0;border-style:solid;border-color:transparent var(--bg) transparent transparent;}
+  .res-doc-body{flex:1;min-width:0;}
+  .res-doc-name{font-size:13.5px;font-weight:600;color:var(--plum);line-height:1.35;margin-bottom:4px;}
+  .res-doc-desc{font-size:11.5px;color:var(--muted);line-height:1.45;}
+  .res-doc-tag{font-size:8.5px;letter-spacing:0.5px;text-transform:uppercase;font-weight:700;color:var(--purple-rich);background:#f2ecf6;padding:2px 7px;border-radius:8px;margin-top:7px;display:inline-block;}
+  @media(max-width:920px){.res-lib{grid-template-columns:1fr;}}
+  /* ── NEW EXERCISE MODAL ── */
+  .modal-back{position:fixed;inset:0;background:rgba(42,31,45,0.55);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:120;padding:24px;}
+  .modal-back.open{display:flex;animation:fade 0.2s;}
+  .modal{background:var(--paper);border-radius:18px;width:100%;max-width:620px;max-height:88vh;overflow-y:auto;box-shadow:0 30px 80px rgba(50,37,52,0.4);animation:modalpop 0.24s ease;}
+  @keyframes modalpop{from{opacity:0;transform:translateY(18px) scale(0.98);}to{opacity:1;transform:none;}}
+  .modal-head{padding:22px 26px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--paper);z-index:2;border-radius:18px 18px 0 0;}
+  .modal-title{font-family:'Fraunces';font-size:20px;font-weight:600;color:var(--plum);}
+  .modal-sub{font-size:12px;color:var(--muted);margin-top:3px;}
+  .modal-x{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;padding:0 4px;line-height:1;}
+  .modal-body{padding:24px 26px;}
+  .modal-foot{padding:16px 26px 22px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;position:sticky;bottom:0;background:var(--paper);}
+  /* video upload */
+  .vid-drop{border:2px dashed var(--purple-light);border-radius:14px;padding:28px 20px;text-align:center;cursor:pointer;transition:all 0.16s;background:#faf7fc;margin-bottom:8px;}
+  .vid-drop:hover{border-color:var(--purple-rich);background:#f5eef8;}
+  .vid-drop-ico{font-size:34px;margin-bottom:10px;opacity:0.75;}
+  .vid-drop-title{font-size:14px;font-weight:600;color:var(--plum);margin-bottom:5px;}
+  .vid-drop-sub{font-size:11.5px;color:var(--muted);line-height:1.5;}
+  .vid-preview{display:none;gap:16px;align-items:flex-start;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:8px;}
+  .vid-preview.show{display:flex;}
+  .vid-thumb-box{width:112px;flex-shrink:0;}
+  .vid-thumb{width:112px;height:76px;border-radius:9px;background:linear-gradient(140deg,var(--plum),var(--purple-rich));display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;position:relative;overflow:hidden;}
+  .vid-thumb::after{content:'\25B6';}
+  .thumb-swap{width:100%;margin-top:7px;font-size:10.5px;padding:6px;border:1px solid var(--border);border-radius:7px;background:var(--paper);color:var(--purple-rich);cursor:pointer;font-weight:600;font-family:'Inter';}
+  .thumb-swap:hover{border-color:var(--purple-mid);}
+  .vid-meta{flex:1;min-width:0;}
+  .vid-name{font-size:13px;font-weight:600;color:var(--text);word-break:break-all;}
+  .vid-detail{font-size:11.5px;color:var(--muted);margin-top:3px;}
+  .vid-bar{height:5px;background:#e8dcf0;border-radius:3px;overflow:hidden;margin-top:10px;}
+  .vid-fill{height:100%;width:0;background:linear-gradient(90deg,var(--purple-rich),var(--purple-mid));border-radius:3px;transition:width 0.3s;}
+  .vid-status{font-size:11px;color:var(--green);font-weight:600;margin-top:7px;}
+  .vid-remove{font-size:11px;color:var(--red);background:none;border:none;cursor:pointer;padding:4px 0;margin-top:6px;font-weight:600;font-family:'Inter';}
+  /* alt exercise picker */
+  .alt-picked{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:9px;min-height:2px;}
+  .alt-chip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;background:#f2ecf6;color:var(--purple-rich);padding:6px 10px;border-radius:16px;font-weight:600;}
+  .alt-chip button{background:none;border:none;color:var(--purple-rich);cursor:pointer;font-size:13px;line-height:1;padding:0;}
+  .alt-options{display:flex;flex-wrap:wrap;gap:7px;}
+  .alt-opt-btn{font-size:11.5px;padding:6px 11px;border:1px solid var(--border);border-radius:16px;background:var(--paper);color:var(--muted);cursor:pointer;font-family:'Inter';font-weight:600;transition:all 0.14s;}
+  .alt-opt-btn:hover{border-color:var(--purple-light);color:var(--purple-rich);}
+  .field-2col{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .select-in{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Inter';font-size:14px;background:var(--bg);color:var(--text);outline:none;margin-bottom:16px;cursor:pointer;}
+  .select-in:focus{border-color:var(--purple-mid);background:var(--white);}
+  /* ── CLIENT RESOURCE MANAGER ── */
+  .rm-toolbar{display:flex;gap:12px;margin-bottom:18px;align-items:center;flex-wrap:wrap;}
+  .rm-filters{display:flex;gap:7px;flex-wrap:wrap;}
+  .rm-filt{font-size:11.5px;padding:8px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--paper);color:var(--muted);cursor:pointer;font-weight:600;font-family:'Inter';transition:all 0.14s;}
+  .rm-filt.on{background:var(--plum);color:#fff;border-color:var(--plum);}
+  .rm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .rm-card{background:var(--paper);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 3px 12px rgba(50,37,52,0.04);transition:all 0.14s;cursor:pointer;}
+  .rm-card:hover{border-color:var(--purple-light);box-shadow:0 8px 22px rgba(50,37,52,0.09);transform:translateY(-2px);}
+  .rm-cover{height:104px;background:linear-gradient(140deg,var(--plum),var(--purple-rich));display:flex;align-items:center;justify-content:center;font-size:32px;color:rgba(255,255,255,0.9);position:relative;}
+  .rm-cover.doc{background:linear-gradient(140deg,var(--purple-rich),var(--plum-deep));}
+  .rm-cover.video{background:linear-gradient(140deg,var(--plum-deep),var(--purple-mid));}
+  .rm-cover.guide{background:linear-gradient(140deg,var(--purple-mid),var(--purple-rich));}
+  .rm-type{position:absolute;top:9px;left:10px;font-size:8.5px;letter-spacing:1px;text-transform:uppercase;font-weight:700;background:rgba(255,255,255,0.22);color:#fff;padding:3px 8px;border-radius:10px;}
+  .rm-vis{position:absolute;top:9px;right:10px;font-size:8.5px;letter-spacing:0.5px;text-transform:uppercase;font-weight:700;padding:3px 8px;border-radius:10px;}
+  .vis-all{background:rgba(255,255,255,0.22);color:#fff;}
+  .vis-some{background:var(--amber);color:#fff;}
+  .rm-info{padding:14px 15px;}
+  .rm-name{font-size:13.5px;font-weight:600;color:var(--plum);line-height:1.35;margin-bottom:5px;}
+  .rm-meta{font-size:11px;color:var(--muted);}
+  .rm-foot{display:flex;justify-content:space-between;align-items:center;padding:10px 15px;border-top:1px solid #f2ecf6;}
+  .rm-cat{font-size:9px;letter-spacing:0.5px;text-transform:uppercase;font-weight:700;color:var(--purple-rich);background:#f2ecf6;padding:3px 8px;border-radius:8px;}
+  .rm-actions{display:flex;gap:5px;}
+  .rm-act{width:26px;height:26px;border-radius:7px;border:1px solid var(--border);background:var(--paper);cursor:pointer;font-size:11px;color:var(--muted);transition:all 0.14s;}
+  .rm-act:hover{border-color:var(--purple-mid);color:var(--purple-rich);}
+  .rm-upload-card{border:2px dashed var(--purple-light);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 18px;cursor:pointer;background:#faf7fc;transition:all 0.16s;min-height:200px;}
+  .rm-upload-card:hover{border-color:var(--purple-rich);background:#f5eef8;}
+  .rm-up-ico{font-size:32px;margin-bottom:10px;opacity:0.75;}
+  .rm-up-title{font-size:13.5px;font-weight:600;color:var(--plum);margin-bottom:4px;}
+  .rm-up-sub{font-size:11px;color:var(--muted);text-align:center;line-height:1.5;}
+  @media(max-width:920px){.rm-grid{grid-template-columns:1fr 1fr;}}
+  /* ── ASSIGN HABITS & TASKS ── */
+  .ht-panel-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid #f2ecf6;}
+  .ht-panel-row:last-child{border-bottom:none;}
+  .ht-emoji{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;background:#f2ecf6;}
+  .ht-info{flex:1;min-width:0;}
+  .ht-name{font-size:13px;font-weight:600;color:var(--text);}
+  .ht-sub{font-size:11px;color:var(--muted);margin-top:2px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+  .ht-remind{display:inline-flex;align-items:center;gap:3px;font-size:10px;color:var(--purple-rich);background:#f2ecf6;padding:2px 7px;border-radius:9px;font-weight:600;}
+  .ht-streak{font-family:'Fraunces';font-size:14px;font-weight:600;color:var(--green);flex-shrink:0;}
+  .ht-due{font-size:10px;font-weight:700;letter-spacing:0.3px;text-transform:uppercase;padding:3px 8px;border-radius:9px;flex-shrink:0;}
+  .due-soon{background:var(--amber-bg);color:var(--amber);}
+  .due-ok{background:var(--green-bg);color:var(--green);}
+  .due-over{background:var(--red-bg);color:var(--red);}
+  /* modal internals */
+  .type-toggle{display:flex;gap:8px;margin-bottom:20px;}
+  .type-btn{flex:1;padding:14px;border:1.5px solid var(--border);border-radius:11px;background:var(--bg);cursor:pointer;font-family:'Inter';text-align:left;transition:all 0.14s;}
+  .type-btn.on{border-color:var(--purple-rich);background:#f5eef8;}
+  .type-btn-title{font-size:13.5px;font-weight:600;color:var(--plum);margin-bottom:3px;}
+  .type-btn-sub{font-size:11px;color:var(--muted);line-height:1.4;}
+  .emoji-picker{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px;}
+  .emoji-opt{width:40px;height:40px;border-radius:10px;border:1.5px solid var(--border);background:var(--paper);font-size:18px;cursor:pointer;transition:all 0.14s;}
+  .emoji-opt:hover{border-color:var(--purple-light);}
+  .emoji-opt.on{border-color:var(--purple-rich);background:#f5eef8;}
+  .freq-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+  .freq-btn{padding:9px 14px;border:1.5px solid var(--border);border-radius:9px;background:var(--paper);font-size:12.5px;font-weight:600;color:var(--muted);cursor:pointer;font-family:'Inter';transition:all 0.14s;}
+  .freq-btn.on{border-color:var(--purple-rich);background:#f5eef8;color:var(--purple-rich);}
+  .day-picker{display:flex;gap:6px;margin-bottom:16px;}
+  .day-pick{flex:1;padding:10px 0;border:1.5px solid var(--border);border-radius:9px;background:var(--paper);font-size:11.5px;font-weight:700;color:var(--muted);cursor:pointer;font-family:'Inter';text-align:center;transition:all 0.14s;}
+  .day-pick.on{border-color:var(--purple-rich);background:var(--plum);color:#fff;}
+  .remind-block{background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:15px;margin-bottom:16px;}
+  .remind-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+  .remind-title{font-size:13px;font-weight:600;color:var(--plum);display:flex;align-items:center;gap:7px;}
+  .switch{width:44px;height:24px;border-radius:20px;background:#dcd2e4;cursor:pointer;position:relative;transition:background 0.18s;border:none;flex-shrink:0;}
+  .switch.on{background:var(--plum);}
+  .switch::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform 0.18s;box-shadow:0 1px 3px rgba(0,0,0,0.2);}
+  .switch.on::after{transform:translateX(20px);}
+  .remind-opts{display:none;}
+  .remind-opts.show{display:block;animation:fade 0.2s;}
+  .time-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .assign-to{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:6px;}
+  .assign-chip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;background:#f2ecf6;color:var(--purple-rich);padding:6px 11px;border-radius:16px;font-weight:600;}
+  .assign-chip button{background:none;border:none;color:var(--purple-rich);cursor:pointer;font-size:13px;line-height:1;padding:0;}
+  /* ── CLIENT DETAIL ADDITIONS ── */
+  .mini-stat-row{display:flex;gap:12px;margin-bottom:14px;}
+  .mini-stat{flex:1;background:#f7f2fa;border:1px solid var(--border);border-radius:10px;padding:12px 14px;text-align:center;}
+  .mini-stat-num{font-family:'Fraunces';font-size:24px;font-weight:600;color:var(--plum);line-height:1;}
+  .mini-stat-lbl{font-size:10px;letter-spacing:0.5px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-top:6px;}
+  .assign-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f2ecf6;}
+  .assign-item:last-child{border-bottom:none;}
+  .assign-dot{width:7px;height:7px;border-radius:2px;background:var(--purple-rich);flex-shrink:0;}
+  .assign-day{font-size:12px;font-weight:600;color:var(--text);flex:1;}
+  .assign-check{font-size:10px;color:var(--purple-rich);font-weight:600;cursor:pointer;}
+  .metric-graphs{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .metric-card{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;}
+  .metric-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;}
+  .metric-name{font-size:11px;letter-spacing:0.5px;text-transform:uppercase;color:var(--muted);font-weight:600;}
+  .metric-val{font-family:'Fraunces';font-size:18px;font-weight:600;color:var(--plum);}
+  .metric-val small{font-size:11px;color:var(--green);font-family:'Inter';font-weight:600;}
+  .photo-gal{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .photo-thumb{aspect-ratio:3/4;border-radius:9px;background:linear-gradient(150deg,#e8e0ef,#d8cde2);display:flex;align-items:flex-end;justify-content:center;position:relative;overflow:hidden;cursor:pointer;transition:transform 0.14s;}
+  .photo-thumb:hover{transform:scale(1.03);}
+  .photo-date{font-size:9px;color:var(--plum-deep);background:rgba(255,255,255,0.85);width:100%;text-align:center;padding:3px;font-weight:600;}
+  .photo-add{aspect-ratio:3/4;border-radius:9px;border:1.5px dashed var(--purple-light);display:flex;align-items:center;justify-content:center;color:var(--purple-rich);font-size:22px;cursor:pointer;background:none;}
+  .injury-box{background:#f8ebea;border:1px solid #e8cac7;border-radius:10px;padding:14px;font-size:13px;color:#8a4c46;line-height:1.6;}
+  .injury-box .inj-lbl{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--red);font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:5px;}
+  .panel-h.clickable{cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
+  .panel-h .h-link{font-size:11px;color:var(--purple-mid);font-weight:600;}
+  @media(max-width:920px){
+    .stat-grid{grid-template-columns:repeat(2,1fr);}
+    .two-col,.detail-grid,.roster-grid{grid-template-columns:1fr;}
+    .builder{grid-template-columns:1fr;}
+    .lib{position:static;}
+    .sidebar{width:64px;padding:20px 8px;}
+    .sb-brand,.sb-tag,.sb-item span:not(.sb-ico):not(.sb-count),.sb-name,.sb-role{display:none;}
+    .sb-item{justify-content:center;}
+  }
+</style>
+</head>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SUPABASE_URL = 'https://kgesumyyfozjiuknqtg.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_oOIHDYSxtecasE-cKjeudA_ckzda4Pe';
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  (async () => {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) { window.location.href = 'signin.html'; return; }
+    const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', session.user.id).single();
+    if (!profile || profile.role !== 'coach') { window.location.href = 'signin.html'; }
+  })();
+
+  async function logOut(){
+    await supabaseClient.auth.signOut();
+    window.location.href = 'landing.html';
+  }
+</script>
+<div class="app">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-brand">Coaching by <em>Tab</em></div>
+    <div class="sb-tag">Coach Dashboard</div>
+    <div class="sb-nav">
+      <button class="sb-item on" id="nav-home" onclick="go('home')"><span class="sb-ico">&#9632;</span><span>Dashboard</span></button>
+      <button class="sb-item" id="nav-queue" onclick="go('queue')"><span class="sb-ico">&#9873;</span><span>Check-in queue</span><span class="sb-count">3</span></button>
+      <button class="sb-item" id="nav-roster" onclick="go('roster')"><span class="sb-ico">&#9783;</span><span>Clients</span></button>
+      <button class="sb-item" id="nav-builder" onclick="go('builder')"><span class="sb-ico">&#9998;</span><span>Workout builder</span></button>
+      <button class="sb-item" id="nav-lens" onclick="go('lens')"><span class="sb-ico"><span class="sunflower light"></span></span><span>Bellamy</span></button>
+      <button class="sb-item" id="nav-announce" onclick="go('announce')"><span class="sb-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.4v3.2c0 .6.5 1 1 1h1.3l.9 3.6a1 1 0 0 0 1 .8h1l-.6-4.4H14l3 2.4V4.6l-3 2.4H4c-.5 0-1 .4-1 1.4z"/><path d="M14 6.2v7.6"/></svg></span><span>Announcements</span></button>
+      <button class="sb-item" id="nav-resources" onclick="go('resources')"><span class="sb-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5c1.8-.9 4-.9 6.2 0v11.5c-2.2-.9-4.4-.9-6.2 0V4.5z"/><path d="M16.2 4.5c-1.8-.9-4-.9-6.2 0v11.5c2.2-.9 4.4-.9 6.2 0V4.5z"/></svg></span><span>Resources</span></button>
+      <button class="sb-item" id="nav-desk" onclick="go('desk')"><span class="sb-ico">&#9998;</span><span>My desk</span></button>
+    </div>
+    <div class="sb-foot">
+      <div class="sb-ava">T</div>
+      <div style="flex:1;"><div class="sb-name">Tab Lomo</div><div class="sb-role">CPT &middot; BCS</div></div>
+      <a href="#" title="Log out" onclick="logOut();return false;" style="color:rgba(255,255,255,0.55);font-size:12px;text-decoration:none;">&#8618;</a>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- DASHBOARD -->
+    <div class="page on" id="home">
+      <div class="page-head">
+        <div class="page-title">Good morning, <em>Tab</em></div>
+        <div class="page-sub">Sunday, July 12 &middot; here's where your people are today.</div>
+      </div>
+      <div class="stat-grid">
+        <div class="statc"><div class="statc-label">Active clients</div><div class="statc-num">14</div><div class="statc-sub">2 onboarding this week</div></div>
+        <div class="statc"><div class="statc-label">Need you today</div><div class="statc-num red">3</div><div class="statc-sub">Flagged from check-ins</div></div>
+        <div class="statc"><div class="statc-label">Check-ins in</div><div class="statc-num green">9<span style="font-size:16px;color:var(--muted)">/14</span></div><div class="statc-sub">This week's reflections</div></div>
+        <div class="statc"><div class="statc-label">Calls booked</div><div class="statc-num">4</div><div class="statc-sub">Next: Kia, Thu 2pm</div></div>
+      </div>
+
+      <div class="sec-label">Who needs you today <button class="link-btn" onclick="go('queue')">See full queue &rarr;</button></div>
+      <div class="queue-card">
+        <div class="q-row" onclick="openClient('Marisa')">
+          <div class="q-flag flag-red"></div>
+          <div class="q-ava">M</div>
+          <div class="q-info"><div class="q-name">Marisa Chen</div><div class="q-detail">Goal not met &middot; skipped reflection</div></div>
+          <div class="q-status st-red">Red</div>
+          <div class="q-time">2 days ago</div>
+        </div>
+        <div class="q-row" onclick="openClient('Danielle')">
+          <div class="q-flag flag-red"></div>
+          <div class="q-ava">D</div>
+          <div class="q-info"><div class="q-name">Danielle Ross</div><div class="q-detail">Goal not met &middot; skipped reflection</div></div>
+          <div class="q-status st-red">Red</div>
+          <div class="q-time">1 day ago</div>
+        </div>
+        <div class="q-row" onclick="openClient('Priya')">
+          <div class="q-flag flag-red"></div>
+          <div class="q-ava">P</div>
+          <div class="q-info"><div class="q-name">Priya Nair</div><div class="q-detail">No activity logged in 5 days</div></div>
+          <div class="q-status st-red">Red</div>
+          <div class="q-time">5 days ago</div>
+        </div>
+        <div class="q-row" onclick="openClient('Kia')">
+          <div class="q-flag flag-amber"></div>
+          <div class="q-ava">K</div>
+          <div class="q-info"><div class="q-name">Kia Stickney</div><div class="q-detail">Goal not met &middot; reflected &amp; committed</div></div>
+          <div class="q-status st-amber">Yellow</div>
+          <div class="q-time">Today</div>
+        </div>
+      </div>
+
+      <div class="two-col" style="margin-top:24px;">
+        <div class="panel">
+          <div class="panel-h">Today's schedule</div>
+          <div class="sched-item"><div class="sched-time">2:00p</div><div class="sched-what"><div class="sched-title">Progress check-in call</div><div class="sched-with">with Kia Stickney &middot; end of block</div></div><span class="sched-type">Call</span></div>
+          <div class="sched-item"><div class="sched-time">4:30p</div><div class="sched-what"><div class="sched-title">In-person session</div><div class="sched-with">Planet Fitness &middot; Catonsville</div></div><span class="sched-type">Train</span></div>
+          <div class="sched-item"><div class="sched-time">6:00p</div><div class="sched-what"><div class="sched-title">New client onboarding</div><div class="sched-with">Assessment review &middot; Jordan</div></div><span class="sched-type">Onboard</span></div>
+        </div>
+        <div class="panel">
+          <div class="panel-h">This week at a glance</div>
+          <div class="sched-item"><div class="sched-what"><div class="sched-title">Check-in completion</div><div class="sched-with">9 of 14 in &middot; 5 still pending</div></div><span style="font-family:'Fraunces';font-size:20px;font-weight:600;color:var(--plum)">64%</span></div>
+          <div class="sched-item"><div class="sched-what"><div class="sched-title">Workouts logged</div><div class="sched-with">38 sessions across all clients</div></div><span style="font-family:'Fraunces';font-size:20px;font-weight:600;color:var(--green)">+12%</span></div>
+          <div class="sched-item"><div class="sched-what"><div class="sched-title">New leads (quiz)</div><div class="sched-with">From the readiness quiz funnel</div></div><span style="font-family:'Fraunces';font-size:20px;font-weight:600;color:var(--plum)">6</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUEUE -->
+    <div class="page" id="queue">
+      <div class="page-head">
+        <div class="page-title">Check-in <em>queue</em></div>
+        <div class="page-sub">Sorted by who needs you most. Red = didn't meet the goal and didn't reflect.</div>
+      </div>
+      <div class="queue-card">
+        <div class="q-row" onclick="openClient('Marisa')"><div class="q-flag flag-red"></div><div class="q-ava">M</div><div class="q-info"><div class="q-name">Marisa Chen</div><div class="q-detail">Steps goal not met &middot; no reflection submitted</div></div><div class="q-status st-red">Red</div><div class="q-time">2 days ago</div></div>
+        <div class="q-row" onclick="openClient('Danielle')"><div class="q-flag flag-red"></div><div class="q-ava">D</div><div class="q-info"><div class="q-name">Danielle Ross</div><div class="q-detail">Workout goal not met &middot; no reflection submitted</div></div><div class="q-status st-red">Red</div><div class="q-time">1 day ago</div></div>
+        <div class="q-row" onclick="openClient('Priya')"><div class="q-flag flag-red"></div><div class="q-ava">P</div><div class="q-info"><div class="q-name">Priya Nair</div><div class="q-detail">No activity logged in 5 days</div></div><div class="q-status st-red">Red</div><div class="q-time">5 days ago</div></div>
+        <div class="q-row" onclick="openClient('Kia')"><div class="q-flag flag-amber"></div><div class="q-ava">K</div><div class="q-info"><div class="q-name">Kia Stickney</div><div class="q-detail">Steps goal not met &middot; reflected: "work ran late 3 nights"</div></div><div class="q-status st-amber">Yellow</div><div class="q-time">Today</div></div>
+        <div class="q-row" onclick="openClient('Rochelle')"><div class="q-flag flag-amber"></div><div class="q-ava">R</div><div class="q-info"><div class="q-name">Rochelle Diaz</div><div class="q-detail">Nutrition goal not met &middot; reflected &amp; committed</div></div><div class="q-status st-amber">Yellow</div><div class="q-time">Today</div></div>
+        <div class="q-row" onclick="openClient('Amara')"><div class="q-flag flag-green"></div><div class="q-ava">A</div><div class="q-info"><div class="q-name">Amara Okafor</div><div class="q-detail">Goal met &middot; strong week</div></div><div class="q-status st-green">Green</div><div class="q-time">Today</div></div>
+        <div class="q-row" onclick="openClient('Simone')"><div class="q-flag flag-green"></div><div class="q-ava">S</div><div class="q-info"><div class="q-name">Simone Bell</div><div class="q-detail">Goal met &middot; 4/4 workouts</div></div><div class="q-status st-green">Green</div><div class="q-time">Yesterday</div></div>
+      </div>
+    </div>
+
+    <!-- ROSTER -->
+    <div class="page" id="roster">
+      <div class="page-head">
+        <div class="page-title">Your <em>clients</em></div>
+        <div class="page-sub">14 active &middot; 2 onboarding</div>
+      </div>
+      <div class="roster-tools">
+        <input class="search" placeholder="Search clients...">
+        <button class="btn-sm" onclick="openHtModal()">+ Assign habit / task</button>
+        <button class="btn-sm primary" onclick="toast('Opens new client onboarding')">+ Add client</button>
+      </div>
+      <div class="roster-grid">
+        <div class="rc" onclick="openClient('Kia')"><div class="rc-top"><div class="rc-ava">K</div><div><div class="rc-name">Kia Stickney</div><div class="rc-meta">Week 3 of 4 &middot; Rebuild</div></div><div class="rc-flagdot" style="background:var(--amber)"></div></div><div class="rc-stats"><div class="rc-stat"><div class="rc-stat-num">3/4</div><div class="rc-stat-lbl">Workouts</div></div><div class="rc-stat"><div class="rc-stat-num">61</div><div class="rc-stat-lbl">Alignment</div></div><div class="rc-stat"><div class="rc-stat-num">Today</div><div class="rc-stat-lbl">Last active</div></div></div></div>
+        <div class="rc" onclick="openClient('Marisa')"><div class="rc-top"><div class="rc-ava">M</div><div><div class="rc-name">Marisa Chen</div><div class="rc-meta">Week 2 of 4 &middot; Reveal</div></div><div class="rc-flagdot" style="background:var(--red)"></div></div><div class="rc-stats"><div class="rc-stat"><div class="rc-stat-num">1/4</div><div class="rc-stat-lbl">Workouts</div></div><div class="rc-stat"><div class="rc-stat-num">52</div><div class="rc-stat-lbl">Alignment</div></div><div class="rc-stat"><div class="rc-stat-num">2d</div><div class="rc-stat-lbl">Last active</div></div></div></div>
+        <div class="rc" onclick="openClient('Amara')"><div class="rc-top"><div class="rc-ava">A</div><div><div class="rc-name">Amara Okafor</div><div class="rc-meta">Week 4 of 4 &middot; Refine</div></div><div class="rc-flagdot" style="background:var(--green)"></div></div><div class="rc-stats"><div class="rc-stat"><div class="rc-stat-num">4/4</div><div class="rc-stat-lbl">Workouts</div></div><div class="rc-stat"><div class="rc-stat-num">78</div><div class="rc-stat-lbl">Alignment</div></div><div class="rc-stat"><div class="rc-stat-num">Today</div><div class="rc-stat-lbl">Last active</div></div></div></div>
+        <div class="rc" onclick="openClient('Danielle')"><div class="rc-top"><div class="rc-ava">D</div><div><div class="rc-name">Danielle Ross</div><div class="rc-meta">Week 1 of 4 &middot; Anchor</div></div><div class="rc-flagdot" style="background:var(--red)"></div></div><div class="rc-stats"><div class="rc-stat"><div class="rc-stat-num">0/3</div><div class="rc-stat-lbl">Workouts</div></div><div class="rc-stat"><div class="rc-stat-num">48</div><div class="rc-stat-lbl">Alignment</div></div><div class="rc-stat"><div class="rc-stat-num">1d</div><div class="rc-stat-lbl">Last active</div></div></div></div>
+        <div class="rc" onclick="openClient('Simone')"><div class="rc-top"><div class="rc-ava">S</div><div><div class="rc-name">Simone Bell</div><div class="rc-meta">Week 3 of 4 &middot; Rebuild</div></div><div class="rc-flagdot" style="background:var(--green)"></div></div><div class="rc-stats"><div class="rc-stat"><div class="rc-stat-num">4/4</div><div class="rc-stat-lbl">Workouts</div></div><div class="rc-stat"><div class="rc-stat-num">70</div><div class="rc-stat-lbl">Alignment</div></div><div class="rc-stat"><div class="rc-stat-num">1d</div><div class="rc-stat-lbl">Last active</div></div></div></div>
+        <div class="rc" onclick="openClient('Priya')"><div class="rc-top"><div class="rc-ava">P</div><div><div class="rc-name">Priya Nair</div><div class="rc-meta">Week 2 of 4 &middot; Reveal</div></div><div class="rc-flagdot" style="background:var(--red)"></div></div><div class="rc-stats"><div class="rc-stat"><div class="rc-stat-num">2/4</div><div class="rc-stat-lbl">Workouts</div></div><div class="rc-stat"><div class="rc-stat-num">55</div><div class="rc-stat-lbl">Alignment</div></div><div class="rc-stat"><div class="rc-stat-num">5d</div><div class="rc-stat-lbl">Last active</div></div></div></div>
+      </div>
+    </div>
+
+    <!-- CLIENT DETAIL -->
+    <div class="page" id="client">
+      <button class="back-btn" onclick="go('roster')">&larr; All clients</button>
+      <div class="detail-head">
+        <div class="dh-ava" id="cdAva">K</div>
+        <div><div class="dh-name" id="cdName">Kia Stickney</div><div class="dh-meta" id="cdMeta">Week 3 of 4 &middot; Rebuild phase &middot; Emerging Alignment</div></div>
+        <div class="dh-actions">
+          <button class="btn-sm" onclick="toast('Opens Kia\'s training calendar')"><svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="4.5" width="14" height="12" rx="2"/><line x1="3" y1="8" x2="17" y2="8"/><line x1="6.5" y1="2.5" x2="6.5" y2="5.5"/><line x1="13.5" y1="2.5" x2="13.5" y2="5.5"/></svg> Calendar</button>
+          <button class="btn-sm" onclick="toast('Quick-add: metrics, photo, note')">&#8635; Update all</button>
+          <button class="btn-sm" onclick="toast('Opens message thread')">Message</button>
+          <button class="btn-sm primary" onclick="go('builder')">Edit program</button>
+        </div>
+      </div>
+      <div class="detail-grid">
+        <div>
+          <div class="panel">
+            <div class="panel-h">Recent reflections</div>
+            <div class="refl-item"><div class="refl-wk"><span class="refl-wk-lbl">Week 3 &middot; this week</span><span class="q-status st-amber">Yellow</span></div><div class="refl-txt">"Barrier: work ran late 3 nights. Small step: 10-min walk at lunch instead of waiting for evening."</div></div>
+            <div class="refl-item"><div class="refl-wk"><span class="refl-wk-lbl">Week 2</span><span class="q-status st-green">Green</span></div><div class="refl-txt">"Prepping my bag the night before is the whole game. When it's packed, I don't argue with myself."</div></div>
+            <div class="refl-item"><div class="refl-wk"><span class="refl-wk-lbl">Week 1</span><span class="q-status st-amber">Yellow</span></div><div class="refl-txt">"Barrier: 5am felt impossible. Small step: lay clothes out, decide the night before."</div></div>
+          </div>
+          <div class="panel" style="margin-top:20px;">
+            <div class="panel-h">Coach notes <span style="font-size:11px;color:var(--muted);font-weight:400">(client can't see these)</span></div>
+            <div class="note-box"><div class="note-lbl">MI observation</div>Kia's language shifted from sustain talk (wk 1: "impossible") to change talk + self-authored solutions (wk 2-3). Accountability dimension is climbing. On the call Thursday, reinforce the identity win, not just the metric.</div>
+          </div>
+          <div class="panel" style="margin-top:20px;">
+            <div class="panel-h clickable"><span>Habits &amp; tasks</span><button class="btn-sm primary" style="padding:6px 13px;font-size:11.5px;" onclick="openHtModal()">+ Assign</button></div>
+            <div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700;margin:4px 0 6px;">Habits</div>
+            <div class="ht-panel-row">
+              <div class="ht-emoji" style="background:#fdf0e0;">&#127803;</div>
+              <div class="ht-info"><div class="ht-name">Sunday prep</div><div class="ht-sub">1&times; a week &middot; Sundays <span class="ht-remind"><svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M6 8a4 4 0 0 1 8 0c0 3 1 4 1.5 4.5H4.5C5 12 6 11 6 8z"/><path d="M8.2 15a1.8 1.8 0 0 0 3.6 0"/></svg> 4:00 PM</span></div></div>
+              <div class="ht-streak">3<svg width="11" height="11" viewBox="0 0 20 20" fill="currentColor" style="vertical-align:-1px"><path d="M10 2c1 2.4-1.6 3.4-1.6 6a1.6 1.6 0 0 0 3.2 0c0-.6-.2-1-.5-1.4 2 .9 3.9 3 3.9 5.6a5 5 0 0 1-10 0c0-3.4 2.5-5.2 5-10.2z"/></svg></div>
+            </div>
+            <div class="ht-panel-row">
+              <div class="ht-emoji" style="background:#fdf6e0;">&#127827;</div>
+              <div class="ht-info"><div class="ht-name">Log meals</div><div class="ht-sub">3&times; a day <span class="ht-remind"><svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M6 8a4 4 0 0 1 8 0c0 3 1 4 1.5 4.5H4.5C5 12 6 11 6 8z"/><path d="M8.2 15a1.8 1.8 0 0 0 3.6 0"/></svg> 8a, 1p, 7p</span></div></div>
+              <div class="ht-streak">12<svg width="11" height="11" viewBox="0 0 20 20" fill="currentColor" style="vertical-align:-1px"><path d="M10 2c1 2.4-1.6 3.4-1.6 6a1.6 1.6 0 0 0 3.2 0c0-.6-.2-1-.5-1.4 2 .9 3.9 3 3.9 5.6a5 5 0 0 1-10 0c0-3.4 2.5-5.2 5-10.2z"/></svg></div>
+            </div>
+            <div class="ht-panel-row">
+              <div class="ht-emoji" style="background:#e8e4ef;">&#127769;</div>
+              <div class="ht-info"><div class="ht-name">Night prep for tomorrow</div><div class="ht-sub">Daily <span class="ht-remind"><svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M6 8a4 4 0 0 1 8 0c0 3 1 4 1.5 4.5H4.5C5 12 6 11 6 8z"/><path d="M8.2 15a1.8 1.8 0 0 0 3.6 0"/></svg> 9:00 PM</span></div></div>
+              <div class="ht-streak">6<svg width="11" height="11" viewBox="0 0 20 20" fill="currentColor" style="vertical-align:-1px"><path d="M10 2c1 2.4-1.6 3.4-1.6 6a1.6 1.6 0 0 0 3.2 0c0-.6-.2-1-.5-1.4 2 .9 3.9 3 3.9 5.6a5 5 0 0 1-10 0c0-3.4 2.5-5.2 5-10.2z"/></svg></div>
+            </div>
+            <div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700;margin:16px 0 6px;">Tasks</div>
+            <div class="ht-panel-row">
+              <div class="ht-emoji">&#128203;</div>
+              <div class="ht-info"><div class="ht-name">Complete 4-week check-in form</div><div class="ht-sub">Due Friday <span class="ht-remind"><svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M6 8a4 4 0 0 1 8 0c0 3 1 4 1.5 4.5H4.5C5 12 6 11 6 8z"/><path d="M8.2 15a1.8 1.8 0 0 0 3.6 0"/></svg> Thu 6:00 PM</span></div></div>
+              <span class="ht-due due-soon">2 days</span>
+            </div>
+            <div class="ht-panel-row">
+              <div class="ht-emoji">&#128247;</div>
+              <div class="ht-info"><div class="ht-name">Upload week 4 progress photo</div><div class="ht-sub">Due Sunday <span class="ht-remind"><svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M6 8a4 4 0 0 1 8 0c0 3 1 4 1.5 4.5H4.5C5 12 6 11 6 8z"/><path d="M8.2 15a1.8 1.8 0 0 0 3.6 0"/></svg> Sun 10:00 AM</span></div></div>
+              <span class="ht-due due-ok">5 days</span>
+            </div>
+          </div>
+          <div class="lens-panel" style="margin-top:20px;">
+            <div class="lens-head">
+              <div class="lens-title"><span class="lens-orb"><span class="sunflower light"></span></span>Bellamy</div>
+              <div class="lens-window">
+                <button class="lens-win" onclick="lensWin(this)">2w</button>
+                <button class="lens-win on" onclick="lensWin(this)">4w</button>
+                <button class="lens-win" onclick="lensWin(this)">8w</button>
+              </div>
+            </div>
+            <div class="lens-tabs">
+              <button class="lens-tab on" onclick="lensTab(this,'overall')">Overall</button>
+              <button class="lens-tab" onclick="lensTab(this,'training')">Training</button>
+              <button class="lens-tab" onclick="lensTab(this,'nutrition')">Nutrition</button>
+            </div>
+            <div class="lens-body" id="lensBody">
+              <div class="lens-insight"><span class="lens-dot ld-pos"></span><div><strong>Consistency is trending up.</strong> Workout completion went 2&rarr;3&rarr;3 over the last three weeks. Adherence is no longer the problem it was in the Anchor phase.</div></div>
+              <div class="lens-insight"><span class="lens-dot ld-watch"></span><div><strong>Steps are the soft spot.</strong> Missed the 9k goal 2 of 4 weeks, both tied to late work nights: a scheduling barrier, not a motivation one.</div></div>
+              <div class="lens-insight"><span class="lens-dot ld-pos"></span><div><strong>Reflection quality is deepening.</strong> Her check-ins moved from naming feelings to naming systems ("prep the night before"). That's identity-level change, not just compliance.</div></div>
+            </div>
+            <div class="lens-feedback">
+              <span class="lens-fb-lbl">Was this useful?</span>
+              <button class="fb-btn up" onclick="fbPick(this,'up')"><svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M7 9v7H4.5A1.5 1.5 0 0 1 3 14.5V10a1 1 0 0 1 1-1H7z"/><path d="M7 9l3.2-6c1 0 1.8.8 1.8 1.8v2.7H15a1.5 1.5 0 0 1 1.45 1.87l-1.2 5A1.5 1.5 0 0 1 13.8 16H7"/></svg></button>
+              <button class="fb-btn down" onclick="fbPick(this,'down')"><svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M7 11V4h2.5A1.5 1.5 0 0 1 11 5.5V10a1 1 0 0 1-1 1H7z"/><path d="M7 11l3.2 6c1 0 1.8-.8 1.8-1.8v-2.7H15a1.5 1.5 0 0 0 1.45-1.87l-1.2-5A1.5 1.5 0 0 0 13.8 4H7"/></svg></button>
+            </div>
+          </div>
+          <div class="lens-panel" style="margin-top:20px;">
+            <div class="lens-head">
+              <div class="lens-title"><span class="lens-orb">&#9998;</span>Draft a message</div>
+              <span class="lens-badge"><span class="spark"><span class="sunflower purple"></span></span>Your voice</span>
+            </div>
+            <div class="lens-tabs">
+              <button class="lens-tab on" onclick="draftTab(this,'overall')">Full status</button>
+              <button class="lens-tab" onclick="draftTab(this,'training')">Training</button>
+              <button class="lens-tab" onclick="draftTab(this,'nudge')">Gentle nudge</button>
+            </div>
+            <div class="draft-box">
+              <div class="draft-meta"><span class="spark"><span class="sunflower purple"></span></span>Drafted for Kia &middot; in your voice</div>
+              <div class="draft-text" id="draftText">Kia, three weeks in and the shift is real. You went from arguing with yourself at 5am to prepping the night before so there's nothing to argue about. That's not more discipline. That's you changing the setup so the right thing gets easier.
+
+Steps slipped a couple weeks, and both times it was late work nights, and that's a scheduling thing, not a you thing. Want to try the lunch walk you mentioned as the backup plan? Small, but it holds the line on the days the evening disappears.
+
+Proud of this stretch. Let's talk it through Thursday.</div>
+              <div class="draft-actions">
+                <button class="btn-sm primary" onclick="toast('Message sent to Kia')">Send</button>
+                <button class="btn-sm" onclick="toast('Opens editor')">Edit</button>
+                <button class="btn-sm" onclick="toast('Regenerating draft...')">Regenerate</button>
+              </div>
+              <div class="lens-feedback">
+                <span class="lens-fb-lbl">Sound like you?</span>
+                <button class="fb-btn up" onclick="fbPick(this,'up')"><svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M7 9v7H4.5A1.5 1.5 0 0 1 3 14.5V10a1 1 0 0 1 1-1H7z"/><path d="M7 9l3.2-6c1 0 1.8.8 1.8 1.8v2.7H15a1.5 1.5 0 0 1 1.45 1.87l-1.2 5A1.5 1.5 0 0 1 13.8 16H7"/></svg></button>
+                <button class="fb-btn down" onclick="fbPick(this,'down')"><svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M7 11V4h2.5A1.5 1.5 0 0 1 11 5.5V10a1 1 0 0 1-1 1H7z"/><path d="M7 11l3.2 6c1 0 1.8-.8 1.8-1.8v-2.7H15a1.5 1.5 0 0 0 1.45-1.87l-1.2-5A1.5 1.5 0 0 0 13.8 4H7"/></svg></button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="panel">
+            <div class="panel-h">Signature Profile</div>
+            <div class="dim"><div class="dim-row"><span class="dim-name">Identity&ndash;Action</span><span class="dim-pct">72%</span></div><div class="dim-track"><div class="dim-fill fill-hi" style="width:72%"></div></div></div>
+            <div class="dim"><div class="dim-row"><span class="dim-name">Self-Authorship</span><span class="dim-pct">68%</span></div><div class="dim-track"><div class="dim-fill fill-mid" style="width:68%"></div></div></div>
+            <div class="dim"><div class="dim-row"><span class="dim-name">Change Readiness</span><span class="dim-pct">64%</span></div><div class="dim-track"><div class="dim-fill fill-mid" style="width:64%"></div></div></div>
+            <div class="dim"><div class="dim-row"><span class="dim-name">Potential Activation</span><span class="dim-pct">56%</span></div><div class="dim-track"><div class="dim-fill fill-mid" style="width:56%"></div></div></div>
+            <div class="dim"><div class="dim-row"><span class="dim-name">Accountability</span><span class="dim-pct">44%</span></div><div class="dim-track"><div class="dim-fill fill-lo" style="width:44%"></div></div></div>
+          </div>
+          <div class="panel" style="margin-top:20px;">
+            <div class="panel-h">Active goals <span style="font-size:11px;color:var(--muted);font-weight:400">(syncs to her app)</span></div>
+            <div class="refl-item"><div class="refl-txt" style="font-style:normal;color:var(--text);font-weight:600;font-size:13px;">Train 4x a week, consistently</div></div>
+            <div class="refl-item"><div class="refl-txt" style="font-style:normal;color:var(--text);font-weight:600;font-size:13px;">Hit 9,000 steps most days</div></div>
+          </div>
+          <div class="panel" style="margin-top:20px;">
+            <div class="panel-h">Training</div>
+            <div class="mini-stat-row">
+              <div class="mini-stat"><div class="mini-stat-num">3</div><div class="mini-stat-lbl">Last 7 days</div></div>
+              <div class="mini-stat"><div class="mini-stat-num">11</div><div class="mini-stat-lbl">Last 30 days</div></div>
+            </div>
+            <div style="font-size:11px;letter-spacing:0.5px;text-transform:uppercase;color:var(--muted);font-weight:600;margin:6px 0 8px;">Next week's assignments</div>
+            <div class="assign-item"><span class="assign-dot"></span><span class="assign-day">Mon &middot; Lower Body</span><span class="assign-check" onclick="toast('Opens latest workout result')">Check result &rarr;</span></div>
+            <div class="assign-item"><span class="assign-dot"></span><span class="assign-day">Wed &middot; Upper Body</span></div>
+            <div class="assign-item"><span class="assign-dot"></span><span class="assign-day">Fri &middot; Lower Body</span></div>
+            <div class="assign-item"><span class="assign-dot"></span><span class="assign-day">Sat &middot; Full Body</span></div>
+          </div>
+          <div class="panel" style="margin-top:20px;">
+            <div class="panel-h clickable" onclick="toast('Expands full metrics history')">Body metrics <span class="h-link">Full history &rarr;</span></div>
+            <div class="metric-graphs">
+              <div class="metric-card">
+                <div class="metric-top"><span class="metric-name">Body weight</span><span class="metric-val">148<small> &darr;3</small></span></div>
+                <svg viewBox="0 0 120 44" style="width:100%;height:44px;"><polyline points="0,10 24,14 48,12 72,20 96,26 120,30" fill="none" stroke="var(--purple-rich)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div class="metric-card">
+                <div class="metric-top"><span class="metric-name">Body fat %</span><span class="metric-val">26<small> &darr;2</small></span></div>
+                <svg viewBox="0 0 120 44" style="width:100%;height:44px;"><polyline points="0,12 24,16 48,18 72,22 96,28 120,32" fill="none" stroke="var(--purple-mid)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+            </div>
+          </div>
+          <div class="panel" style="margin-top:20px;">
+            <div class="panel-h clickable"><span>Progress photos</span><button class="btn-sm" style="padding:6px 12px;font-size:11px;" onclick="toast('Upload a progress photo')">+ Add</button></div>
+            <div class="photo-gal">
+              <div class="photo-thumb" onclick="toast('Opens photo')"><div class="photo-date">Wk 1</div></div>
+              <div class="photo-thumb" onclick="toast('Opens photo')"><div class="photo-date">Wk 2</div></div>
+              <div class="photo-thumb" onclick="toast('Opens photo')"><div class="photo-date">Wk 3</div></div>
+            </div>
+            <div style="text-align:left;margin-top:10px;"><span class="h-link" style="cursor:pointer;color:var(--purple-mid);font-size:11px;font-weight:600;" onclick="toast('Opens full photo timeline')">View all &rarr;</span></div>
+          </div>
+          <div class="panel" style="margin-top:20px;">
+            <div class="panel-h">Limitations &amp; injuries <span style="font-size:11px;color:var(--muted);font-weight:400">(private)</span></div>
+            <div class="injury-box">
+              <div class="inj-lbl">&#9888; Keep in mind when programming</div>
+              Right knee: prior meniscus repair (2022). Avoid deep loaded flexion; goblet squat to box is her current safe depth. No plyometrics. Cleared for hinge and lunge patterns with control.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LENS HUB -->
+    <div class="page" id="lens">
+      <div class="page-head">
+        <div class="page-title">Bellamy</div>
+        <div class="page-sub">Your assist layer: patterns across every client, and outreach drafted in your voice. You review and send. Nothing goes out without you.</div>
+      </div>
+
+      <div class="lens-panel">
+        <div class="lens-head">
+          <div class="lens-title"><span class="lens-orb"><span class="sunflower light"></span></span>This week across your roster</div>
+          <div class="lens-window">
+            <button class="lens-win" onclick="lensWin(this)">2w</button>
+            <button class="lens-win on" onclick="lensWin(this)">4w</button>
+            <button class="lens-win" onclick="lensWin(this)">8w</button>
+          </div>
+        </div>
+        <div class="lens-body">
+          <div class="lens-insight"><span class="lens-dot ld-flag"></span><div><strong>3 clients at risk.</strong> Marisa, Danielle, and Priya all missed goals and went quiet. Priya's the most urgent: 5 days no activity, and her pattern usually precedes a drop-off.</div></div>
+          <div class="lens-insight"><span class="lens-dot ld-watch"></span><div><strong>A roster-wide pattern:</strong> "time / late work nights" is the top barrier this week, named by 4 clients. Might be worth a group announcement about backup-plan movement, not individual messages.</div></div>
+          <div class="lens-insight"><span class="lens-dot ld-pos"></span><div><strong>Amara's ready for what's next.</strong> Strong alignment, 4/4 workouts, week 4. Good candidate to graduate to a lighter check-in cadence or a new goal tier.</div></div>
+        </div>
+        <div class="lens-feedback">
+          <span class="lens-fb-lbl">Was this useful?</span>
+          <button class="fb-btn up" onclick="fbPick(this,'up')"><svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M7 9v7H4.5A1.5 1.5 0 0 1 3 14.5V10a1 1 0 0 1 1-1H7z"/><path d="M7 9l3.2-6c1 0 1.8.8 1.8 1.8v2.7H15a1.5 1.5 0 0 1 1.45 1.87l-1.2 5A1.5 1.5 0 0 1 13.8 16H7"/></svg></button>
+          <button class="fb-btn down" onclick="fbPick(this,'down')"><svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M7 11V4h2.5A1.5 1.5 0 0 1 11 5.5V10a1 1 0 0 1-1 1H7z"/><path d="M7 11l3.2 6c1 0 1.8-.8 1.8-1.8v-2.7H15a1.5 1.5 0 0 0 1.45-1.87l-1.2-5A1.5 1.5 0 0 0 13.8 4H7"/></svg></button>
+        </div>
+      </div>
+
+      <div class="sec-label">At-risk reach-outs <span class="link-btn" onclick="toast('Drafts all three at once')">Draft all &rarr;</span></div>
+      <div class="hub-risk">
+        <div class="hub-row">
+          <div class="q-flag flag-red"></div>
+          <div class="q-ava">P</div>
+          <div class="hub-info"><div class="hub-name">Priya Nair</div><div class="hub-insight">5 days silent &middot; Bellamy suggests a low-pressure, curiosity-first reach-out</div></div>
+          <button class="hub-draft-btn" onclick="toast('Draft ready \u2014 review before sending')"><span class="sunflower purple"></span> Draft outreach</button>
+        </div>
+        <div class="hub-row">
+          <div class="q-flag flag-red"></div>
+          <div class="q-ava">M</div>
+          <div class="hub-info"><div class="hub-name">Marisa Chen</div><div class="hub-insight">Goal missed + skipped reflection &middot; still early in Reveal phase</div></div>
+          <button class="hub-draft-btn" onclick="toast('Draft ready \u2014 review before sending')"><span class="sunflower purple"></span> Draft outreach</button>
+        </div>
+        <div class="hub-row">
+          <div class="q-flag flag-red"></div>
+          <div class="q-ava">D</div>
+          <div class="hub-info"><div class="hub-name">Danielle Ross</div><div class="hub-insight">Week 1, 0 workouts logged &middot; onboarding momentum stalling</div></div>
+          <button class="hub-draft-btn" onclick="toast('Draft ready \u2014 review before sending')"><span class="sunflower purple"></span> Draft outreach</button>
+        </div>
+      </div>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:14px;line-height:1.6;font-style:italic;">Bellamy drafts and surfaces. You decide, edit, and send. It learns from your thumbs up/down over time: the more you correct it, the more it sounds like you.</div>
+    </div>
+
+    <!-- ANNOUNCEMENTS -->
+    <div class="page" id="announce">
+      <div class="page-head">
+        <div class="page-title">Post an <em>announcement</em></div>
+        <div class="page-sub">Shows up at the top of the Coaching page for the clients you choose.</div>
+      </div>
+      <div class="compose">
+        <label class="field-lbl">Message</label>
+        <textarea class="ta" id="annText" placeholder="e.g. This week's check-in responses will be completed Saturday instead of Sunday..."></textarea>
+        <label class="field-lbl">Who sees it</label>
+        <div class="seg">
+          <button class="seg-btn on" onclick="segPick(this)">All clients</button>
+          <button class="seg-btn" onclick="segPick(this)">A group</button>
+          <button class="seg-btn" onclick="segPick(this)">One client</button>
+        </div>
+        <button class="btn-post" onclick="postAnn()">Post announcement</button>
+      </div>
+      <div class="sec-label">Recent announcements</div>
+      <div id="pastAnns">
+        <div class="past-ann"><div class="pa-top"><span class="pa-audience">All clients</span><span class="pa-date">Monday</span></div><div class="pa-text">Heads up: this week's check-in responses will be completed Saturday instead of Sunday. Get yours in by Friday night if you can.</div></div>
+        <div class="past-ann"><div class="pa-top"><span class="pa-audience">All clients</span><span class="pa-date">Last week</span></div><div class="pa-text">New recipe book just dropped in your Education tab: 12 high-protein breakfasts under 10 minutes.</div></div>
+      </div>
+    </div>
+
+    <!-- CLIENT RESOURCES -->
+    <div class="page" id="resources">
+      <div class="page-head">
+        <div class="page-title">Client <em>resources</em></div>
+        <div class="page-sub">Everything your clients see in their Education tab. Upload it once, assign who gets it.</div>
+      </div>
+      <div class="rm-toolbar">
+        <div class="rm-filters">
+          <button class="rm-filt on" onclick="rmFilt(this,'all')">All</button>
+          <button class="rm-filt" onclick="rmFilt(this,'guide')">Guides</button>
+          <button class="rm-filt" onclick="rmFilt(this,'video')">Videos</button>
+          <button class="rm-filt" onclick="rmFilt(this,'doc')">Documents</button>
+          <button class="rm-filt" onclick="rmFilt(this,'form')">Forms</button>
+        </div>
+        <input class="search" style="max-width:240px;margin-left:auto;" placeholder="Search resources...">
+      </div>
+      <div class="rm-grid" id="rmGrid">
+        <div class="rm-upload-card" onclick="openResModal()">
+          <div class="rm-up-ico">&#8679;</div>
+          <div class="rm-up-title">Upload a resource</div>
+          <div class="rm-up-sub">PDF, video, doc, image<br>or link to something external</div>
+        </div>
+
+        <div class="rm-card" data-type="guide" onclick="toast('Opens Nutrition Guide')">
+          <div class="rm-cover guide"><span class="rm-type">Guide</span><span class="rm-vis vis-all">All clients</span><svg width="26" height="26" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15c-1-6 3-11 11-11 1 6-3 11-11 11z"/><path d="M4 15c2-4 5-6.5 9-8"/></svg></div>
+          <div class="rm-info"><div class="rm-name">CBT Nutrition Guide</div><div class="rm-meta">PDF &middot; 59 pages &middot; 4.2 MB</div></div>
+          <div class="rm-foot"><span class="rm-cat">Nutrition</span><div class="rm-actions"><button class="rm-act" onclick="event.stopPropagation();toast('Edit resource')">&#9998;</button><button class="rm-act" onclick="event.stopPropagation();toast('Assign to clients')"><svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="7.2" cy="7" r="2.4"/><path d="M2.6 16c.4-3 2.2-4.6 4.6-4.6S11.4 13 11.8 16"/><circle cx="14" cy="7.8" r="2"/><path d="M13 11.6c1.9.1 3.3 1.5 3.6 3.9"/></svg></button></div></div>
+        </div>
+
+        <div class="rm-card" data-type="guide" onclick="toast('Opens Behavior Change Cheat Sheet')">
+          <div class="rm-cover guide"><span class="rm-type">Guide</span><span class="rm-vis vis-all">All clients</span><svg width="26" height="26" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M7 14.5h6"/><path d="M8 17h4"/><path d="M10 3a5 5 0 0 0-3 9c.6.5 1 1.2 1 2h4c0-.8.4-1.5 1-2a5 5 0 0 0-3-9z"/></svg></div>
+          <div class="rm-info"><div class="rm-name">Behavior Change Cheat Sheet</div><div class="rm-meta">PDF &middot; 18 entries &middot; 1.1 MB</div></div>
+          <div class="rm-foot"><span class="rm-cat">Mindset</span><div class="rm-actions"><button class="rm-act" onclick="event.stopPropagation();toast('Edit resource')">&#9998;</button><button class="rm-act" onclick="event.stopPropagation();toast('Assign to clients')"><svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="7.2" cy="7" r="2.4"/><path d="M2.6 16c.4-3 2.2-4.6 4.6-4.6S11.4 13 11.8 16"/><circle cx="14" cy="7.8" r="2"/><path d="M13 11.6c1.9.1 3.3 1.5 3.6 3.9"/></svg></button></div></div>
+        </div>
+
+        <div class="rm-card" data-type="video" onclick="toast('Plays video')">
+          <div class="rm-cover video"><span class="rm-type">Video</span><span class="rm-vis vis-all">All clients</span>&#9654;</div>
+          <div class="rm-info"><div class="rm-name">How to read your check-in highlights</div><div class="rm-meta">MP4 &middot; 4:12 &middot; 86 MB</div></div>
+          <div class="rm-foot"><span class="rm-cat">Onboarding</span><div class="rm-actions"><button class="rm-act" onclick="event.stopPropagation();toast('Edit resource')">&#9998;</button><button class="rm-act" onclick="event.stopPropagation();toast('Assign to clients')"><svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="7.2" cy="7" r="2.4"/><path d="M2.6 16c.4-3 2.2-4.6 4.6-4.6S11.4 13 11.8 16"/><circle cx="14" cy="7.8" r="2"/><path d="M13 11.6c1.9.1 3.3 1.5 3.6 3.9"/></svg></button></div></div>
+        </div>
+
+        <div class="rm-card" data-type="video" onclick="toast('Plays video')">
+          <div class="rm-cover video"><span class="rm-type">Video</span><span class="rm-vis vis-some">6 clients</span>&#9654;</div>
+          <div class="rm-info"><div class="rm-name">Build My Plate: portion basics</div><div class="rm-meta">MP4 &middot; 6:40 &middot; 124 MB</div></div>
+          <div class="rm-foot"><span class="rm-cat">Nutrition</span><div class="rm-actions"><button class="rm-act" onclick="event.stopPropagation();toast('Edit resource')">&#9998;</button><button class="rm-act" onclick="event.stopPropagation();toast('Assign to clients')"><svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="7.2" cy="7" r="2.4"/><path d="M2.6 16c.4-3 2.2-4.6 4.6-4.6S11.4 13 11.8 16"/><circle cx="14" cy="7.8" r="2"/><path d="M13 11.6c1.9.1 3.3 1.5 3.6 3.9"/></svg></button></div></div>
+        </div>
+
+        <div class="rm-card" data-type="doc" onclick="toast('Opens recipe book')">
+          <div class="rm-cover doc"><span class="rm-type">Doc</span><span class="rm-vis vis-all">All clients</span><svg width="26" height="26" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15c-1-6 3-11 11-11 1 6-3 11-11 11z"/><path d="M4 15c2-4 5-6.5 9-8"/></svg></div>
+          <div class="rm-info"><div class="rm-name">Breakfast Recipe Book</div><div class="rm-meta">PDF &middot; 36 recipes &middot; 8.4 MB</div></div>
+          <div class="rm-foot"><span class="rm-cat">Nutrition</span><div class="rm-actions"><button class="rm-act" onclick="event.stopPropagation();toast('Edit resource')">&#9998;</button><button class="rm-act" onclick="event.stopPropagation();toast('Assign to clients')"><svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="7.2" cy="7" r="2.4"/><path d="M2.6 16c.4-3 2.2-4.6 4.6-4.6S11.4 13 11.8 16"/><circle cx="14" cy="7.8" r="2"/><path d="M13 11.6c1.9.1 3.3 1.5 3.6 3.9"/></svg></button></div></div>
+        </div>
+
+        <div class="rm-card" data-type="doc" onclick="toast('Opens recipe book')">
+          <div class="rm-cover doc"><span class="rm-type">Doc</span><span class="rm-vis vis-all">All clients</span><svg width="26" height="26" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15c-1-6 3-11 11-11 1 6-3 11-11 11z"/><path d="M4 15c2-4 5-6.5 9-8"/></svg></div>
+          <div class="rm-info"><div class="rm-name">Lunch &amp; Dinner Recipe Book</div><div class="rm-meta">PDF &middot; 79 recipes &middot; 14 MB</div></div>
+          <div class="rm-foot"><span class="rm-cat">Nutrition</span><div class="rm-actions"><button class="rm-act" onclick="event.stopPropagation();toast('Edit resource')">&#9998;</button><button class="rm-act" onclick="event.stopPropagation();toast('Assign to clients')"><svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="7.2" cy="7" r="2.4"/><path d="M2.6 16c.4-3 2.2-4.6 4.6-4.6S11.4 13 11.8 16"/><circle cx="14" cy="7.8" r="2"/><path d="M13 11.6c1.9.1 3.3 1.5 3.6 3.9"/></svg></button></div></div>
+        </div>
+
+        <div class="rm-card" data-type="form" onclick="toast('Opens form')">
+          <div class="rm-cover"><span class="rm-type">Form</span><span class="rm-vis vis-some">New clients</span><svg width="26" height="26" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="10" height="13" rx="1.6"/><rect x="7.5" y="2.5" width="5" height="3" rx="1"/><line x1="7.3" y1="9" x2="12.7" y2="9"/><line x1="7.3" y1="12" x2="12.7" y2="12"/></svg></div>
+          <div class="rm-info"><div class="rm-name">Client Intake Form</div><div class="rm-meta">Form &middot; 24 questions</div></div>
+          <div class="rm-foot"><span class="rm-cat">Onboarding</span><div class="rm-actions"><button class="rm-act" onclick="event.stopPropagation();toast('Edit resource')">&#9998;</button><button class="rm-act" onclick="event.stopPropagation();toast('Assign to clients')"><svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="7.2" cy="7" r="2.4"/><path d="M2.6 16c.4-3 2.2-4.6 4.6-4.6S11.4 13 11.8 16"/><circle cx="14" cy="7.8" r="2"/><path d="M13 11.6c1.9.1 3.3 1.5 3.6 3.9"/></svg></button></div></div>
+        </div>
+
+        <div class="rm-card" data-type="form" onclick="toast('Opens form')">
+          <div class="rm-cover"><span class="rm-type">Form</span><span class="rm-vis vis-some">New clients</span><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><circle cx="10" cy="10" r="7"/><line x1="10" y1="6.5" x2="10" y2="13.5"/><line x1="6.5" y1="10" x2="13.5" y2="10"/></svg></div>
+          <div class="rm-info"><div class="rm-name">PAR-Q Health Screening</div><div class="rm-meta">Form &middot; 9 questions</div></div>
+          <div class="rm-foot"><span class="rm-cat">Onboarding</span><div class="rm-actions"><button class="rm-act" onclick="event.stopPropagation();toast('Edit resource')">&#9998;</button><button class="rm-act" onclick="event.stopPropagation();toast('Assign to clients')"><svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="7.2" cy="7" r="2.4"/><path d="M2.6 16c.4-3 2.2-4.6 4.6-4.6S11.4 13 11.8 16"/><circle cx="14" cy="7.8" r="2"/><path d="M13 11.6c1.9.1 3.3 1.5 3.6 3.9"/></svg></button></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MY DESK -->
+    <div class="page" id="desk">
+      <div class="page-head">
+        <div class="page-title">My <em>desk</em></div>
+        <div class="page-sub">Your workspace: calendar, tasks, and notes for you. None of this is visible to clients.</div>
+      </div>
+      <div class="desk-grid" style="margin-bottom:6px;">
+        <div>
+          <div class="sec-label">Calendar</div>
+          <div class="panel">
+            <div class="cal-head">
+              <div class="cal-month" id="calMonth">July 2026</div>
+              <div class="cal-navs">
+                <button class="cal-nav" onclick="calShift(-1)">&lsaquo;</button>
+                <button class="cal-nav" onclick="calShift(1)">&rsaquo;</button>
+              </div>
+            </div>
+            <div class="cal-grid" id="calGrid"></div>
+            <div class="cal-legend">
+              <div class="cal-leg"><span class="cal-leg-dot" style="background:var(--purple-rich)"></span>Call</div>
+              <div class="cal-leg"><span class="cal-leg-dot" style="background:var(--green)"></span>Session</div>
+              <div class="cal-leg"><span class="cal-leg-dot" style="background:var(--amber)"></span>Onboarding</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="sec-label">Today &middot; July 12</div>
+          <div class="panel">
+            <div class="agenda">
+              <div class="agenda-item"><div class="agenda-time">2:00p</div><div class="agenda-what"><div class="agenda-title">Progress check-in call</div><div class="agenda-sub">Kia Stickney &middot; end of block</div></div></div>
+              <div class="agenda-item"><div class="agenda-time">4:30p</div><div class="agenda-what"><div class="agenda-title">In-person session</div><div class="agenda-sub">Planet Fitness &middot; Catonsville</div></div></div>
+              <div class="agenda-item"><div class="agenda-time">6:00p</div><div class="agenda-what"><div class="agenda-title">New client onboarding</div><div class="agenda-sub">Assessment review &middot; Jordan</div></div></div>
+            </div>
+            <button class="btn-sm primary" style="width:100%;margin-top:14px;" onclick="toast('Opens new event')">+ Add to calendar</button>
+          </div>
+        </div>
+      </div>
+      <div class="desk-grid">
+        <div>
+          <div class="sec-label">My tasks</div>
+          <div class="panel">
+            <div class="task-add-row">
+              <input class="task-input" id="taskInput" placeholder="Add a task..." onkeydown="if(event.key==='Enter')addTask()">
+              <button class="task-add-btn" onclick="addTask()">+</button>
+            </div>
+            <div id="taskList">
+              <div class="task-item"><div class="task-box" onclick="toggleTask(this)"></div><div class="task-text">Draft Kia's progress call talking points<div><span class="task-tag tt-client">Client</span></div></div></div>
+              <div class="task-item"><div class="task-box" onclick="toggleTask(this)"></div><div class="task-text">Reach out to Priya: 5 days quiet<div><span class="task-tag tt-client">Client</span></div></div></div>
+              <div class="task-item"><div class="task-box" onclick="toggleTask(this)"></div><div class="task-text">Post Saturday check-in announcement<div><span class="task-tag tt-admin">Admin</span></div></div></div>
+              <div class="task-item done"><div class="task-box done" onclick="toggleTask(this)">&#10003;</div><div class="task-text">Update bio credentials to CPT/BCS<div><span class="task-tag tt-admin">Admin</span></div></div></div>
+              <div class="task-item done"><div class="task-box done" onclick="toggleTask(this)">&#10003;</div><div class="task-text">Build Danielle's Anchor block</div></div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="sec-label">My notes</div>
+          <div class="panel">
+            <textarea class="notes-area" id="deskNotes" oninput="notesSaved()" placeholder="Scratchpad for anything: ideas, reminders, things to bring up, business to-dos...">Content ideas:
+- Carousel on "consistency isn't discipline, it's structure" (poundcake style)
+- Reframe post: sustain talk vs. change talk, client-friendly language
+
+Business:
+- Follow up on ISSA x HCI enrollment paperwork
+- Review PF Training Support Manager role details
+
+Coaching reminders:
+- Amara ready to graduate to lighter cadence: discuss on next call
+- Group announcement idea: backup-plan movement for busy weeks</textarea>
+            <div class="notes-saved" id="notesSavedLbl"><span style="color:var(--green)">&#10003;</span> Saved</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec-label">My coaching references <span class="link-btn" onclick="toast('Upload a new reference')">+ Add reference</span></div>
+      <div class="res-lib">
+        <div class="res-doc" onclick="toast('Opens Behavior Change Skills Reference')">
+          <div class="res-doc-ico">PDF</div>
+          <div class="res-doc-body">
+            <div class="res-doc-name">Behavior Change Skills Reference</div>
+            <div class="res-doc-desc">The three-bucket diagnostic: relational, contextual, informational. For when a session stalls.</div>
+            <span class="res-doc-tag">Method</span>
+          </div>
+        </div>
+        <div class="res-doc" onclick="toast('Opens Scope of Practice Cheat Sheet')">
+          <div class="res-doc-ico">PDF</div>
+          <div class="res-doc-body">
+            <div class="res-doc-name">Scope of Practice &amp; Referral</div>
+            <div class="res-doc-desc">When to refer out, and what not to do. Red flags across medical, mental health, and nutrition.</div>
+            <span class="res-doc-tag">Safety</span>
+          </div>
+        </div>
+        <div class="res-doc" onclick="toast('Opens MI Acronym Glossary')">
+          <div class="res-doc-ico">PDF</div>
+          <div class="res-doc-body">
+            <div class="res-doc-name">MI &amp; Health Coaching Acronyms</div>
+            <div class="res-doc-desc">PACE, OARS, DARN-CAT, COM-B, TTM, and which one to reach for, when.</div>
+            <span class="res-doc-tag">Reference</span>
+          </div>
+        </div>
+        <div class="res-doc" onclick="toast('Opens Weekly Check-In Cheat Sheet')">
+          <div class="res-doc-ico">PDF</div>
+          <div class="res-doc-body">
+            <div class="res-doc-name">Weekly Check-In Cheat Sheet</div>
+            <div class="res-doc-desc">Reconnect &rarr; Reflect &rarr; Diagnose &rarr; Reinforce &rarr; Refine. The recurring-session flow.</div>
+            <span class="res-doc-tag">Flow</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WORKOUT BUILDER -->
+    <div class="page" id="builder">
+      <div class="page-head">
+        <div class="page-title">Workout <em>builder</em></div>
+        <div class="page-sub">Building Kia's Rebuild block &middot; drag exercises from your library into any day.</div>
+      </div>
+      <div class="builder">
+        <div class="builder-main">
+          <div class="block-bar">
+            <div><div class="block-name">Rebuild Block</div><div class="block-meta">Kia Stickney &middot; 4 weeks &middot; 4 days/week</div></div>
+            <button class="tmpl-btn" onclick="toast('Opens template library')">Start from template</button>
+          </div>
+          <div class="week-tabs">
+            <button class="week-tab on" onclick="weekTab(this)">Week 1</button>
+            <button class="week-tab" onclick="weekTab(this)">Week 2</button>
+            <button class="week-tab" onclick="weekTab(this)">Week 3</button>
+            <button class="week-tab" onclick="weekTab(this)">Week 4</button>
+          </div>
+
+          <div class="day-block">
+            <div class="day-head"><div class="day-title">Day 1</div><div class="day-tagn">&middot; Lower Body</div><button class="day-add" onclick="toast('Pick from library \u2192')">+ Add exercise</button></div>
+            <div id="day1">
+              <div class="bex"><span class="bex-drag">&#8942;&#8942;</span><div class="bex-thumb"></div><div class="bex-info"><div class="bex-name">Goblet Squat</div><div class="bex-pattern">Squat</div><div class="bex-scheme"><span class="scheme-chip">4&times;8</span><span class="scheme-chip">RPE 7</span><span class="scheme-chip">90s rest</span></div></div><button class="bex-x" onclick="this.closest('.bex').remove()">&times;</button></div>
+              <div class="bex"><span class="bex-drag">&#8942;&#8942;</span><div class="bex-thumb"></div><div class="bex-info"><div class="bex-name">Romanian Deadlift</div><div class="bex-pattern">Hinge</div><div class="bex-scheme"><span class="scheme-chip">3&times;10</span><span class="scheme-chip">RPE 8</span><span class="scheme-chip">90s rest</span></div></div><button class="bex-x" onclick="this.closest('.bex').remove()">&times;</button></div>
+              <div class="bex"><span class="bex-drag">&#8942;&#8942;</span><div class="bex-thumb"></div><div class="bex-info"><div class="bex-name">Walking Lunge</div><div class="bex-pattern">Lunge</div><div class="bex-scheme"><span class="scheme-chip">3&times;12</span><span class="scheme-chip">RPE 7</span><span class="scheme-chip">60s rest</span></div></div><button class="bex-x" onclick="this.closest('.bex').remove()">&times;</button></div>
+            </div>
+          </div>
+
+          <div class="day-block">
+            <div class="day-head"><div class="day-title">Day 2</div><div class="day-tagn">&middot; Upper Body</div><button class="day-add" onclick="toast('Pick from library \u2192')">+ Add exercise</button></div>
+            <div id="day2">
+              <div class="bex"><span class="bex-drag">&#8942;&#8942;</span><div class="bex-thumb"></div><div class="bex-info"><div class="bex-name">DB Bench Press</div><div class="bex-pattern">Horizontal Push</div><div class="bex-scheme"><span class="scheme-chip">4&times;8</span><span class="scheme-chip">RPE 7</span><span class="scheme-chip">90s rest</span></div></div><button class="bex-x" onclick="this.closest('.bex').remove()">&times;</button></div>
+              <div class="bex"><span class="bex-drag">&#8942;&#8942;</span><div class="bex-thumb"></div><div class="bex-info"><div class="bex-name">Lat Pulldown</div><div class="bex-pattern">Vertical Pull</div><div class="bex-scheme"><span class="scheme-chip">3&times;10</span><span class="scheme-chip">RPE 8</span><span class="scheme-chip">75s rest</span></div></div><button class="bex-x" onclick="this.closest('.bex').remove()">&times;</button></div>
+            </div>
+          </div>
+
+          <div class="day-block">
+            <div class="day-head"><div class="day-title">Day 3</div><div class="day-tagn">&middot; Rest / mobility</div><button class="day-add" onclick="toast('Pick from library \u2192')">+ Add exercise</button></div>
+            <div id="day3"><div class="empty-day">Rest day: drag an exercise here to add optional movement.</div></div>
+          </div>
+        </div>
+
+        <!-- LIBRARY PANEL -->
+        <div class="lib">
+          <div class="lib-h">Exercise library</div>
+          <div class="lib-sub">Your movements, each with your demo video. Tap + to add to a day, or build a new one below.</div>
+          <input class="lib-search" placeholder="Search exercises...">
+          <div class="lib-filters">
+            <span class="lib-filt on" onclick="libFilt(this)">All</span>
+            <span class="lib-filt" onclick="libFilt(this)">Squat</span>
+            <span class="lib-filt" onclick="libFilt(this)">Hinge</span>
+            <span class="lib-filt" onclick="libFilt(this)">Push</span>
+            <span class="lib-filt" onclick="libFilt(this)">Pull</span>
+            <span class="lib-filt" onclick="libFilt(this)">Core</span>
+          </div>
+          <div class="lib-ex" onclick="toast('Added to Day 1')"><div class="lib-ex-thumb"></div><div><div class="lib-ex-name">Back Squat</div><div class="lib-ex-pat">Squat</div></div><span class="lib-ex-add">+</span></div>
+          <div class="lib-ex" onclick="toast('Added to Day 1')"><div class="lib-ex-thumb"></div><div><div class="lib-ex-name">Bulgarian Split Squat</div><div class="lib-ex-pat">Lunge</div></div><span class="lib-ex-add">+</span></div>
+          <div class="lib-ex" onclick="toast('Added to Day 1')"><div class="lib-ex-thumb"></div><div><div class="lib-ex-name">Hip Thrust</div><div class="lib-ex-pat">Hinge</div></div><span class="lib-ex-add">+</span></div>
+          <div class="lib-ex" onclick="toast('Added to Day 2')"><div class="lib-ex-thumb"></div><div><div class="lib-ex-name">Overhead Press</div><div class="lib-ex-pat">Vertical Push</div></div><span class="lib-ex-add">+</span></div>
+          <div class="lib-ex" onclick="toast('Added to Day 2')"><div class="lib-ex-thumb"></div><div><div class="lib-ex-name">Seated Row</div><div class="lib-ex-pat">Horizontal Pull</div></div><span class="lib-ex-add">+</span></div>
+          <div class="lib-ex" onclick="toast('Added to day')"><div class="lib-ex-thumb"></div><div><div class="lib-ex-name">Plank Hold</div><div class="lib-ex-pat">Core</div></div><span class="lib-ex-add">+</span></div>
+          <button class="lib-new" onclick="openExModal()">+ New exercise</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<!-- ASK BELLAMY FLOATING CHAT -->
+<button class="bell-fab" id="bellFab" onclick="bellOpen()"><span class="sunflower light" style="width:26px;height:26px;"></span></button>
+<div class="bell-panel" id="bellPanel">
+  <div class="bell-head">
+    <div class="bell-orb"><span class="sunflower light"></span></div>
+    <div><div class="bell-htitle">Bellamy</div><div class="bell-hsub">Ask about any client's data</div></div>
+    <div class="bell-head-actions">
+      <button class="bell-hbtn" onclick="bellNew()" title="New chat">&#8635;</button>
+      <button class="bell-hbtn" onclick="bellClose()" title="Close">&times;</button>
+    </div>
+  </div>
+  <div class="bell-body" id="bellBody">
+    <div class="bell-msg ai">
+      <div class="bell-ai-row"><div class="bell-ai-orb"><span class="sunflower light"></span></div><div class="bell-ai-bubble">Hey Tab. Ask me anything about your clients' training, nutrition, or metrics. Tag a client with <strong>@name</strong> to focus on them.</div></div>
+    </div>
+    <div class="bell-examples">
+      <div class="bell-ex-lbl">Try asking</div>
+      <button class="bell-ex" onclick="bellAsk('Who missed their goal this week and hasn\'t reflected?')">Who missed their goal this week and hasn't reflected?</button>
+      <button class="bell-ex" onclick="bellAsk('@Kia how is her squat progressing over the block?')">@Kia how is her squat progressing over the block?</button>
+      <button class="bell-ex" onclick="bellAsk('Which clients are trending toward a drop-off?')">Which clients are trending toward a drop-off?</button>
+    </div>
+  </div>
+  <div class="bell-foot">
+    <div class="bell-suggest" id="bellSuggest" onclick="useSuggest()"></div>
+    <div class="bell-inrow">
+      <input class="bell-input" id="bellInput" placeholder="Ask Bellamy...  (type @ to tag a client)" oninput="bellTyping()" onkeydown="if(event.key==='Enter')bellSend()">
+      <button class="bell-mic" id="bellMic" onclick="bellMic()" title="Voice input"><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="7.5" y="2.5" width="5" height="8" rx="2.5"/><path d="M4.5 9.5a5.5 5.5 0 0 0 11 0"/><line x1="10" y1="15" x2="10" y2="17.5"/></svg></button>
+      <button class="bell-send" onclick="bellSend()">&#8593;</button>
+    </div>
+    <div class="bell-limit">Workspace messages: 340 / 500 this month</div>
+  </div>
+</div>
+
+<!-- NEW EXERCISE MODAL -->
+<div class="modal-back" id="exModal" onclick="if(event.target===this)closeExModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">New exercise</div>
+        <div class="modal-sub">Your demo video is how they learn the form. Record it once, use it everywhere.</div>
+      </div>
+      <button class="modal-x" onclick="closeExModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <label class="field-lbl">Demo video</label>
+      <div class="vid-drop" id="vidDrop" onclick="simUpload()">
+        <div class="vid-drop-ico"><svg width="30" height="30" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="10.5" height="9" rx="1.6"/><path d="M13 8.5l4.5-2.5v8L13 11.5"/></svg></div>
+        <div class="vid-drop-title">Upload your demo video</div>
+        <div class="vid-drop-sub">Drag a file here or click to browse &middot; MP4 or MOV, up to 200MB<br>Landscape or portrait both work: portrait plays better on their phone.</div>
+      </div>
+      <div class="vid-preview" id="vidPreview">
+        <div class="vid-thumb-box">
+          <div class="vid-thumb" id="vidThumb"></div>
+          <button class="thumb-swap" onclick="swapThumb()">Change thumbnail</button>
+        </div>
+        <div class="vid-meta">
+          <div class="vid-name" id="vidName">goblet-squat-demo.mp4</div>
+          <div class="vid-detail" id="vidDetail">00:42 &middot; 38 MB</div>
+          <div class="vid-bar"><div class="vid-fill" id="vidFill"></div></div>
+          <div class="vid-status" id="vidStatus" style="display:none;">&#10003; Uploaded &middot; thumbnail auto-grabbed at 0:03</div>
+          <button class="vid-remove" onclick="removeVid()">Remove video</button>
+        </div>
+      </div>
+
+      <label class="field-lbl" style="margin-top:20px;">Exercise name</label>
+      <input class="inp" id="exName" placeholder="e.g. Goblet Squat">
+
+      <div class="field-2col">
+        <div>
+          <label class="field-lbl">Movement pattern</label>
+          <select class="select-in" id="exPattern">
+            <option>Squat</option><option>Hinge</option><option>Lunge</option>
+            <option>Horizontal Push</option><option>Vertical Push</option>
+            <option>Horizontal Pull</option><option>Vertical Pull</option>
+            <option>Carry</option><option>Rotation</option><option>Core</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-lbl">Primary muscle group</label>
+          <select class="select-in" id="exMuscle">
+            <option>Quads</option><option>Glutes / Hamstrings</option><option>Chest</option>
+            <option>Back</option><option>Shoulders</option><option>Arms</option><option>Core</option><option>Full body</option>
+          </select>
+        </div>
+      </div>
+
+      <label class="field-lbl">Form cues <span style="text-transform:none;letter-spacing:0;font-weight:400;color:var(--muted)">: shows under the video</span></label>
+      <textarea class="ta" id="exCues" style="min-height:70px;" placeholder="e.g. Chest tall, knees track over toes, drive through the heel."></textarea>
+
+      <label class="field-lbl">Alternative exercises <span style="text-transform:none;letter-spacing:0;font-weight:400;color:var(--muted)">: what clients can swap to</span></label>
+      <div class="alt-picked" id="altPicked"></div>
+      <div class="alt-options" id="altOptions">
+        <button class="alt-opt-btn" onclick="addAlt(this)">Leg Press</button>
+        <button class="alt-opt-btn" onclick="addAlt(this)">Box Squat</button>
+        <button class="alt-opt-btn" onclick="addAlt(this)">Split Squat</button>
+        <button class="alt-opt-btn" onclick="addAlt(this)">Hack Squat</button>
+        <button class="alt-opt-btn" onclick="addAlt(this)">Wall Sit</button>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-sm" onclick="closeExModal()">Cancel</button>
+      <button class="btn-sm primary" onclick="saveExercise()">Save to library</button>
+    </div>
+  </div>
+</div>
+
+<!-- UPLOAD RESOURCE MODAL -->
+<div class="modal-back" id="resModal" onclick="if(event.target===this)closeResModal()">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Upload a resource</div>
+        <div class="modal-sub">Goes into your clients' Education tab once you assign it.</div>
+      </div>
+      <button class="modal-x" onclick="closeResModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <label class="field-lbl">File</label>
+      <div class="vid-drop" id="resDrop" onclick="simResUpload()">
+        <div class="vid-drop-ico"><svg width="28" height="28" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13v2.2A1.8 1.8 0 0 0 6.8 17h6.4a1.8 1.8 0 0 0 1.8-1.8V13"/><path d="M10 12.5V3"/><path d="M6.2 6.8 10 3l3.8 3.8"/></svg></div>
+        <div class="vid-drop-title">Drop a file or click to browse</div>
+        <div class="vid-drop-sub">PDF, DOCX, MP4, MOV, PNG, JPG &middot; up to 500MB<br>Or paste an external link below instead.</div>
+      </div>
+      <div class="vid-preview" id="resPreview" style="align-items:center;">
+        <div class="vid-thumb" style="width:56px;height:56px;font-size:20px;" id="resIcon"></div>
+        <div class="vid-meta">
+          <div class="vid-name" id="resFileName">cbt-nutrition-guide.pdf</div>
+          <div class="vid-detail" id="resFileDetail">PDF &middot; 4.2 MB</div>
+          <div class="vid-bar"><div class="vid-fill" id="resFill"></div></div>
+          <div class="vid-status" id="resStatus" style="display:none;">&#10003; Uploaded</div>
+        </div>
+      </div>
+
+      <label class="field-lbl" style="margin-top:18px;">Or link to something external</label>
+      <input class="inp" id="resLink" placeholder="https://...  (YouTube, Google Doc, Notion, etc.)">
+
+      <label class="field-lbl">Title</label>
+      <input class="inp" id="resTitle" placeholder="e.g. CBT Nutrition Guide">
+
+      <label class="field-lbl">Short description <span style="text-transform:none;letter-spacing:0;font-weight:400;color:var(--muted)">: what clients see under the title</span></label>
+      <textarea class="ta" id="resDesc" style="min-height:60px;" placeholder="One line on what it is and when to use it."></textarea>
+
+      <div class="field-2col">
+        <div>
+          <label class="field-lbl">Category</label>
+          <select class="select-in" id="resCat">
+            <option>Nutrition</option><option>Training</option><option>Mindset</option>
+            <option>Onboarding</option><option>Recipes</option><option>Other</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-lbl">Who gets it</label>
+          <select class="select-in" id="resVis">
+            <option>All clients</option><option>New clients only</option>
+            <option>Select clients...</option><option>Draft: not visible yet</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-sm" onclick="closeResModal()">Cancel</button>
+      <button class="btn-sm primary" onclick="saveResource()">Publish to clients</button>
+    </div>
+  </div>
+</div>
+
+<!-- ASSIGN HABIT / TASK MODAL -->
+<div class="modal-back" id="htModal" onclick="if(event.target===this)closeHtModal()">
+  <div class="modal" style="max-width:580px;">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="htModalTitle">Assign a habit</div>
+        <div class="modal-sub">Small and repeatable beats big and occasional.</div>
+      </div>
+      <button class="modal-x" onclick="closeHtModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="type-toggle">
+        <button class="type-btn on" id="btnHabit" onclick="htType('habit')">
+          <div class="type-btn-title">Habit</div>
+          <div class="type-btn-sub">Recurring: builds a streak over time</div>
+        </button>
+        <button class="type-btn" id="btnTask" onclick="htType('task')">
+          <div class="type-btn-title">Task</div>
+          <div class="type-btn-sub">One-off: has a due date, then it's done</div>
+        </button>
+      </div>
+
+      <label class="field-lbl">Name</label>
+      <input class="inp" id="htName" placeholder="e.g. Night prep for tomorrow">
+
+      <label class="field-lbl">Why it matters <span style="text-transform:none;letter-spacing:0;font-weight:400;color:var(--muted)">: the client sees this</span></label>
+      <textarea class="ta" id="htWhy" style="min-height:56px;" placeholder="One line connecting it to their goal. e.g. 'Decide the night before so 5am isn't a debate.'"></textarea>
+
+      <label class="field-lbl">Icon</label>
+      <div class="emoji-picker" id="htEmojis">
+        <button class="emoji-opt on" onclick="pickEmoji(this)">&#127803;</button>
+        <button class="emoji-opt" onclick="pickEmoji(this)">&#127827;</button>
+        <button class="emoji-opt" onclick="pickEmoji(this)">&#127769;</button>
+        <button class="emoji-opt" onclick="pickEmoji(this)">&#128167;</button>
+        <button class="emoji-opt" onclick="pickEmoji(this)">&#128099;</button>
+        <button class="emoji-opt" onclick="pickEmoji(this)">&#128716;</button>
+        <button class="emoji-opt" onclick="pickEmoji(this)">&#128203;</button>
+        <button class="emoji-opt" onclick="pickEmoji(this)">&#128247;</button>
+      </div>
+
+      <div id="habitFields">
+        <label class="field-lbl">How often</label>
+        <div class="freq-row" id="htFreq">
+          <button class="freq-btn on" onclick="pickFreq(this)">Daily</button>
+          <button class="freq-btn" onclick="pickFreq(this)">Specific days</button>
+          <button class="freq-btn" onclick="pickFreq(this)">1&times; a week</button>
+          <button class="freq-btn" onclick="pickFreq(this)">2&times; a day</button>
+          <button class="freq-btn" onclick="pickFreq(this)">3&times; a day</button>
+        </div>
+        <label class="field-lbl">Which days</label>
+        <div class="day-picker" id="htDays">
+          <button class="day-pick on" onclick="this.classList.toggle('on')">M</button>
+          <button class="day-pick on" onclick="this.classList.toggle('on')">T</button>
+          <button class="day-pick on" onclick="this.classList.toggle('on')">W</button>
+          <button class="day-pick on" onclick="this.classList.toggle('on')">T</button>
+          <button class="day-pick on" onclick="this.classList.toggle('on')">F</button>
+          <button class="day-pick on" onclick="this.classList.toggle('on')">S</button>
+          <button class="day-pick on" onclick="this.classList.toggle('on')">S</button>
+        </div>
+      </div>
+
+      <div id="taskFields" style="display:none;">
+        <div class="time-row">
+          <div>
+            <label class="field-lbl">Due date</label>
+            <input class="inp" type="date" id="htDue" value="2026-07-17">
+          </div>
+          <div>
+            <label class="field-lbl">Priority</label>
+            <select class="select-in" id="htPriority"><option>Normal</option><option>High</option><option>Low</option></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="remind-block">
+        <div class="remind-head">
+          <div class="remind-title"><svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M6 8a4 4 0 0 1 8 0c0 3 1 4 1.5 4.5H4.5C5 12 6 11 6 8z"/><path d="M8.2 15a1.8 1.8 0 0 0 3.6 0"/></svg> Reminder</div>
+          <button class="switch on" id="htRemindSwitch" onclick="toggleRemind()"></button>
+        </div>
+        <div class="remind-opts show" id="htRemindOpts">
+          <div class="time-row">
+            <div>
+              <label class="field-lbl">Time</label>
+              <input class="inp" type="time" id="htRemindTime" value="21:00" style="margin-bottom:0;">
+            </div>
+            <div>
+              <label class="field-lbl">How</label>
+              <select class="select-in" id="htRemindHow" style="margin-bottom:0;">
+                <option>Push notification</option><option>Push + email</option><option>Email only</option>
+              </select>
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:11px;line-height:1.5;">Nudges land at this time on the days it's scheduled. If they check it off early, the reminder skips.</div>
+        </div>
+      </div>
+
+      <label class="field-lbl">Assign to</label>
+      <div class="assign-to" id="htAssigned">
+        <span class="assign-chip">Kia Stickney <button onclick="this.closest('.assign-chip').remove()">&times;</button></span>
+      </div>
+      <select class="select-in" id="htAddClient" onchange="addAssignee(this)">
+        <option value="">+ Add another client...</option>
+        <option>Marisa Chen</option><option>Danielle Ross</option><option>Priya Nair</option>
+        <option>Amara Okafor</option><option>Simone Bell</option><option>Rochelle Diaz</option>
+        <option>All active clients</option>
+      </select>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-sm" onclick="closeHtModal()">Cancel</button>
+      <button class="btn-sm primary" onclick="saveHt()">Assign</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="demo-note">Coach dashboard prototype &middot; Tab's side. Sidebar switches views. Click any flagged client to open detail. Bellamy: the AI assist surfaces insights &amp; drafts (sidebar), and the floating sunflower button bottom-right lets you ask about any client. Sample data throughout.</div>
+
+<script>
+  const pages=['home','queue','roster','client','lens','announce','resources','desk','builder'];
+  const navMap={home:'nav-home',queue:'nav-queue',roster:'nav-roster',builder:'nav-builder',lens:'nav-lens',announce:'nav-announce',resources:'nav-resources',desk:'nav-desk'};
+  function go(id){
+    pages.forEach(p=>document.getElementById(p).classList.toggle('on',p===id));
+    Object.values(navMap).forEach(n=>document.getElementById(n).classList.remove('on'));
+    if(navMap[id])document.getElementById(navMap[id]).classList.add('on');
+    if(id==='desk')renderCal();
+    document.querySelector('.main').scrollTop=0;
+  }
+  const clientData={
+    Kia:['K','Kia Stickney','Week 3 of 4 \u00b7 Rebuild phase \u00b7 Emerging Alignment'],
+    Marisa:['M','Marisa Chen','Week 2 of 4 \u00b7 Reveal phase \u00b7 Foundational Work'],
+    Danielle:['D','Danielle Ross','Week 1 of 4 \u00b7 Anchor phase \u00b7 Foundational Work'],
+    Priya:['P','Priya Nair','Week 2 of 4 \u00b7 Reveal phase \u00b7 Emerging Alignment'],
+    Amara:['A','Amara Okafor','Week 4 of 4 \u00b7 Refine phase \u00b7 Strong Alignment'],
+    Simone:['S','Simone Bell','Week 3 of 4 \u00b7 Rebuild phase \u00b7 Emerging Alignment'],
+    Rochelle:['R','Rochelle Diaz','Week 2 of 4 \u00b7 Reveal phase \u00b7 Emerging Alignment']
+  };
+  function openClient(name){
+    const d=clientData[name]||clientData.Kia;
+    document.getElementById('cdAva').textContent=d[0];
+    document.getElementById('cdName').textContent=d[1];
+    document.getElementById('cdMeta').textContent=d[2];
+    go('client');
+  }
+  function segPick(el){el.parentNode.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('on'));el.classList.add('on');}
+  function postAnn(){
+    const t=document.getElementById('annText').value.trim();
+    if(!t){toast('Write a message first');return;}
+    const aud=document.querySelector('.seg-btn.on').textContent;
+    const list=document.getElementById('pastAnns');
+    const div=document.createElement('div');div.className='past-ann';
+    div.innerHTML='<div class="pa-top"><span class="pa-audience">'+aud+'</span><span class="pa-date">Just now</span></div><div class="pa-text">'+escapeHtml(t)+'</div>';
+    list.insertBefore(div,list.firstChild);
+    document.getElementById('annText').value='';
+    toast('Announcement posted');
+  }
+  function weekTab(el){el.parentNode.querySelectorAll('.week-tab').forEach(b=>b.classList.remove('on'));el.classList.add('on');toast('Switched to '+el.textContent);}  function libFilt(el){el.parentNode.querySelectorAll('.lib-filt').forEach(b=>b.classList.remove('on'));el.classList.add('on');}
+  function lensWin(el){el.parentNode.querySelectorAll('.lens-win').forEach(b=>b.classList.remove('on'));el.classList.add('on');toast('Analyzing last '+el.textContent.replace('w',' weeks'));}
+  function lensTab(el,which){el.parentNode.querySelectorAll('.lens-tab').forEach(b=>b.classList.remove('on'));el.classList.add('on');
+    const body=document.getElementById('lensBody');
+    const sets={
+      overall:'<div class="lens-insight"><span class="lens-dot ld-pos"></span><div><strong>Consistency is trending up.</strong> Workout completion went 2\u21923\u21923 over three weeks. Adherence is no longer the problem it was in Anchor.</div></div><div class="lens-insight"><span class="lens-dot ld-watch"></span><div><strong>Steps are the soft spot.</strong> Missed 9k goal 2 of 4 weeks, both tied to late work nights \u2014 scheduling, not motivation.</div></div><div class="lens-insight"><span class="lens-dot ld-pos"></span><div><strong>Reflection quality is deepening.</strong> Moved from naming feelings to naming systems. Identity-level change.</div></div>',
+      training:'<div class="lens-insight"><span class="lens-dot ld-pos"></span><div><strong>Squat weight up 5%</strong> over the block with RPE holding at 7 \u2014 room to progress the load next block.</div></div><div class="lens-insight"><span class="lens-dot ld-watch"></span><div><strong>Skips cluster on Day 4.</strong> The lower-body session is the one most often moved or missed. Worth asking if the timing works.</div></div>',
+      nutrition:'<div class="lens-insight"><span class="lens-dot ld-pos"></span><div><strong>Meal logging is consistent</strong> \u2014 3x/day habit is holding at 90%+.</div></div><div class="lens-insight"><span class="lens-dot ld-watch"></span><div><strong>Weekend portions drift.</strong> Build My Plate photos show larger carb portions Sat\u2013Sun. Not a problem yet \u2014 worth a light mention.</div></div>'
+    };
+    body.innerHTML=sets[which]||sets.overall;
+  }
+  function draftTab(el,which){el.parentNode.querySelectorAll('.lens-tab').forEach(b=>b.classList.remove('on'));el.classList.add('on');
+    const t=document.getElementById('draftText');
+    const drafts={
+      overall:'Kia \u2014 three weeks in and the shift is real. You went from arguing with yourself at 5am to prepping the night before so there\'s nothing to argue about. That\'s not more discipline. That\'s you changing the setup so the right thing gets easier.\n\nSteps slipped a couple weeks, and both times it was late work nights \u2014 that\'s a scheduling thing, not a you thing. Want to try the lunch walk you mentioned as the backup plan?\n\nProud of this stretch. Let\'s talk it through Thursday.',
+      training:'Kia \u2014 your squat\'s up 5% and your RPE hasn\'t budged, which means you\'ve got more in the tank than the numbers are asking for. Next block we bump the load.\n\nOne thing: Day 4 keeps getting moved. No judgment \u2014 but if that time slot fights you every week, let\'s just move it on paper so it stops being a decision.',
+      nudge:'Hey Kia \u2014 no agenda here, just checking in. You\'ve been showing up, and I noticed the late nights this week. How are you feeling about the pace? If anything needs adjusting, that\'s what I\'m here for.'
+    };
+    t.textContent=drafts[which]||drafts.overall;
+  }
+  function fbPick(el,dir){
+    const wrap=el.parentNode;
+    wrap.querySelectorAll('.fb-btn').forEach(b=>b.classList.remove('on'));
+    el.classList.add('on');
+    toast(dir==='up'?'Thanks \u2014 Bellamy learns from this':'Noted \u2014 Bellamy will adjust');
+  }
+  let toastT=null;
+  function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');if(toastT)clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2200);}
+  /* ── ASK BELLAMY CHAT ── */
+  function bellOpen(){document.getElementById('bellPanel').classList.add('open');document.getElementById('bellFab').style.display='none';setTimeout(()=>document.getElementById('bellInput').focus(),200);}
+  function bellClose(){document.getElementById('bellPanel').classList.remove('open');document.getElementById('bellFab').style.display='flex';}
+  function bellNew(){
+    document.getElementById('bellBody').innerHTML=
+      '<div class="bell-msg ai"><div class="bell-ai-row"><div class="bell-ai-orb"><span class="sunflower light"></span></div><div class="bell-ai-bubble">Fresh start. What do you want to know?</div></div></div>';
+    document.getElementById('bellInput').value='';
+    document.getElementById('bellSuggest').classList.remove('show');
+  }
+  const bellAnswers=[
+    {q:['missed','goal','reflect','drop'],a:'<strong>3 clients need you.</strong> Marisa and Danielle both missed their goals and skipped their reflections \u2014 that\'s the red flag pattern. Priya\'s gone quiet 5 days with no activity, which usually comes right before someone drifts off. Want me to draft outreach for any of them?'},
+    {q:['kia','squat','progress'],a:'<strong>Kia\'s squat is trending up.</strong> Load climbed ~5% across the block while her RPE held steady at 7 \u2014 meaning she has more capacity than the program is currently asking for. I\'d progress the weight next block. Her one soft spot is steps, not lifting.'},
+    {q:['drop','risk','trending','quiet'],a:'<strong>Two names stand out.</strong> Priya (5 days silent, matches her usual pre-drop pattern) is the urgent one. Danielle is week 1 with 0 workouts logged \u2014 onboarding momentum is stalling, which is the highest-churn window. Both worth a low-pressure reach-out today.'},
+    {q:['step','walk'],a:'<strong>Steps are the roster\'s weak point this week.</strong> 4 clients missed step goals, and "late work nights" is the shared barrier \u2014 it\'s a scheduling problem, not a motivation one. A group announcement about backup-plan movement might beat 4 separate messages.'}
+  ];
+  function bellReply(text){
+    const low=text.toLowerCase();
+    let ans='<strong>Here\'s what I see.</strong> In the built version I\'d pull this straight from that client\'s logged data \u2014 workouts, check-ins, Build My Plate photos, steps \u2014 and answer in plain language. Try one of the example questions to see the shape of a real answer.';
+    let best=0;
+    bellAnswers.forEach(item=>{
+      const score=item.q.filter(k=>low.includes(k)).length;
+      if(score>best){best=score;ans=item.a;}
+    });
+    return ans;
+  }
+  function bellAsk(q){document.getElementById('bellInput').value=q;bellSend();}
+  function bellSend(){
+    const inp=document.getElementById('bellInput');
+    const text=inp.value.trim();
+    if(!text)return;
+    const body=document.getElementById('bellBody');
+    // remove examples block if present
+    const ex=body.querySelector('.bell-examples');if(ex)ex.remove();
+    // user msg (highlight @tags)
+    const um=document.createElement('div');um.className='bell-msg user';
+    um.innerHTML=escapeHtml(text).replace(/@(\w+)/g,'<span class="tag">@$1</span>');
+    body.appendChild(um);
+    inp.value='';
+    document.getElementById('bellSuggest').classList.remove('show');
+    body.scrollTop=body.scrollHeight;
+    // ai reply after short delay
+    setTimeout(()=>{
+      const am=document.createElement('div');am.className='bell-msg ai';
+      am.innerHTML='<div class="bell-ai-row"><div class="bell-ai-orb"><span class="sunflower light"></span></div><div class="bell-ai-bubble">'+bellReply(text)+'</div></div>'
+        +'<div class="bell-ai-fb"><button class="bell-fb" onclick="bellFb(this,\'up\')">\u{1F44D}</button><button class="bell-fb" onclick="bellFb(this,\'down\')">\u{1F44E}</button></div>';
+      body.appendChild(am);
+      body.scrollTop=body.scrollHeight;
+    },420);
+  }
+  function bellFb(el,dir){el.parentNode.querySelectorAll('.bell-fb').forEach(b=>b.classList.remove('on'));el.classList.add('on');toast(dir==='up'?'Thanks \u2014 Bellamy learns from this':'Noted \u2014 Bellamy will adjust');}
+  function bellTyping(){
+    const v=document.getElementById('bellInput').value.toLowerCase();
+    const sug=document.getElementById('bellSuggest');
+    if(v.length>2 && (v.includes('who')||v.includes('how')||v.includes('which'))){
+      sug.textContent='\uD83C\uDF3B Suggested: "Who needs a check-in reply today?"';
+      sug.classList.add('show');
+    } else if(v.endsWith('@')){
+      sug.textContent='\uD83C\uDF3B Client picker: Kia \u00b7 Marisa \u00b7 Danielle \u00b7 Priya \u00b7 Amara...';
+      sug.classList.add('show');
+    } else { sug.classList.remove('show'); }
+  }
+  function useSuggest(){
+    const s=document.getElementById('bellSuggest').textContent;
+    const m=s.match(/"([^"]+)"/);
+    if(m){document.getElementById('bellInput').value=m[1];bellSend();}
+  }
+  let recording=false;
+  function bellMic(){
+    const m=document.getElementById('bellMic');
+    recording=!recording;
+    m.classList.toggle('rec',recording);
+    if(recording){toast('Listening... (voice input)');
+      setTimeout(()=>{
+        if(recording){document.getElementById('bellInput').value='How is @Kia progressing this block?';recording=false;m.classList.remove('rec');toast('Got it \u2014 review and send');}
+      },2200);
+    } else { toast('Stopped'); }
+  }
+  /* ── MY DESK ── */
+  function addTask(){
+    const inp=document.getElementById('taskInput');
+    const val=inp.value.trim();
+    if(!val)return;
+    const list=document.getElementById('taskList');
+    const item=document.createElement('div');item.className='task-item';
+    item.innerHTML='<div class="task-box" onclick="toggleTask(this)"></div><div class="task-text">'+escapeHtml(val)+'</div>';
+    list.insertBefore(item,list.firstChild);
+    inp.value='';
+  }
+  function toggleTask(box){
+    const item=box.closest('.task-item');
+    const done=box.classList.toggle('done');
+    item.classList.toggle('done',done);
+    box.innerHTML=done?'\u2713':'';
+    if(done){setTimeout(()=>{item.parentNode.appendChild(item);},250);}
+  }
+  let notesT=null;
+  function notesSaved(){
+    const lbl=document.getElementById('notesSavedLbl');
+    lbl.innerHTML='<span style="color:var(--muted)">\u2026</span> Saving';
+    if(notesT)clearTimeout(notesT);
+    notesT=setTimeout(()=>{lbl.innerHTML='<span style="color:var(--green)">\u2713</span> Saved';},600);
+  }
+  /* ── DESK CALENDAR ── */
+  const monthNames=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  let calYear=2026, calMonthIdx=6; // July 2026
+  // events keyed by day-of-month for the current sample month (July 2026)
+  const calEvents={
+    3:[['call','Danielle']], 7:[['train','PF session']], 9:[['call','Simone']],
+    10:[['onboard','Jordan intake']], 12:[['call','Kia'],['train','PF'],['onboard','Jordan']],
+    15:[['train','PF session']], 16:[['call','Amara']], 18:[['call','Rochelle'],['train','PF']],
+    22:[['onboard','New client']], 24:[['call','Marisa']], 25:[['train','PF session']],
+    29:[['call','Priya']], 31:[['call','Kia'],['train','PF']]
+  };
+  function renderCal(){
+    document.getElementById('calMonth').textContent=monthNames[calMonthIdx]+' '+calYear;
+    const grid=document.getElementById('calGrid');
+    grid.innerHTML='';
+    ['S','M','T','W','T','F','S'].forEach(d=>{const h=document.createElement('div');h.className='cal-dow';h.textContent=d;grid.appendChild(h);});
+    const first=new Date(calYear,calMonthIdx,1).getDay();
+    const days=new Date(calYear,calMonthIdx+1,0).getDate();
+    const prevDays=new Date(calYear,calMonthIdx,0).getDate();
+    const isJuly=(calYear===2026&&calMonthIdx===6);
+    // leading muted days
+    for(let i=first-1;i>=0;i--){const c=document.createElement('div');c.className='cal-cell muted';c.innerHTML='<div class="cal-daynum">'+(prevDays-i)+'</div>';grid.appendChild(c);}
+    for(let d=1;d<=days;d++){
+      const c=document.createElement('div');c.className='cal-cell'+(isJuly&&d===12?' today':'');
+      let html='<div class="cal-daynum">'+d+'</div>';
+      const evs=isJuly?(calEvents[d]||[]):[];
+      evs.slice(0,2).forEach(e=>{html+='<div class="cal-ev ev-'+e[0]+'">'+e[1]+'</div>';});
+      if(evs.length>2)html+='<div class="ev-more">+'+(evs.length-2)+' more</div>';
+      c.innerHTML=html;
+      c.onclick=()=>{if(evs.length)toast(evs.length+' event'+(evs.length>1?'s':'')+' on '+monthNames[calMonthIdx]+' '+d);else toast('Add event '+monthNames[calMonthIdx]+' '+d);};
+      grid.appendChild(c);
+    }
+    // trailing muted to fill last row
+    const total=first+days;const trail=(7-(total%7))%7;
+    for(let i=1;i<=trail;i++){const c=document.createElement('div');c.className='cal-cell muted';c.innerHTML='<div class="cal-daynum">'+i+'</div>';grid.appendChild(c);}
+  }
+  function calShift(dir){
+    calMonthIdx+=dir;
+    if(calMonthIdx<0){calMonthIdx=11;calYear--;}
+    if(calMonthIdx>11){calMonthIdx=0;calYear++;}
+    renderCal();
+  }
+  /* ── NEW EXERCISE MODAL ── */
+  function openExModal(){document.getElementById('exModal').classList.add('open');}
+  function closeExModal(){document.getElementById('exModal').classList.remove('open');resetExModal();}
+  function resetExModal(){
+    document.getElementById('vidDrop').style.display='block';
+    document.getElementById('vidPreview').classList.remove('show');
+    document.getElementById('vidFill').style.width='0';
+    document.getElementById('vidStatus').style.display='none';
+    document.getElementById('exName').value='';
+    document.getElementById('exCues').value='';
+    document.getElementById('altPicked').innerHTML='';
+    document.querySelectorAll('#altOptions .alt-opt-btn').forEach(b=>b.style.display='');
+  }
+  function simUpload(){
+    document.getElementById('vidDrop').style.display='none';
+    const prev=document.getElementById('vidPreview');
+    prev.classList.add('show');
+    const fill=document.getElementById('vidFill');
+    fill.style.width='0';
+    let pct=0;
+    const int=setInterval(()=>{
+      pct+=Math.random()*22+8;
+      if(pct>=100){pct=100;clearInterval(int);
+        document.getElementById('vidStatus').style.display='block';
+        toast('Video uploaded \u2014 thumbnail ready');
+      }
+      fill.style.width=pct+'%';
+    },260);
+  }
+  function removeVid(){
+    document.getElementById('vidPreview').classList.remove('show');
+    document.getElementById('vidDrop').style.display='block';
+    document.getElementById('vidFill').style.width='0';
+    document.getElementById('vidStatus').style.display='none';
+  }
+  let thumbIdx=0;
+  const thumbGrads=[
+    'linear-gradient(140deg,#6D567F,#8e6894)',
+    'linear-gradient(140deg,#8e6894,#b298b6)',
+    'linear-gradient(140deg,#5c4a6b,#8e6894)',
+    'linear-gradient(140deg,#8b7d9b,#6D567F)'
+  ];
+  function swapThumb(){
+    thumbIdx=(thumbIdx+1)%thumbGrads.length;
+    document.getElementById('vidThumb').style.background=thumbGrads[thumbIdx];
+    toast('Thumbnail frame '+(thumbIdx+1)+' of 4');
+  }
+  function addAlt(btn){
+    const name=btn.textContent;
+    btn.style.display='none';
+    const picked=document.getElementById('altPicked');
+    const chip=document.createElement('span');chip.className='alt-chip';
+    chip.innerHTML=escapeHtml(name)+' <button onclick="removeAlt(this,\''+escapeHtml(name)+'\')">&times;</button>';
+    picked.appendChild(chip);
+  }
+  function removeAlt(x,name){
+    x.closest('.alt-chip').remove();
+    document.querySelectorAll('#altOptions .alt-opt-btn').forEach(b=>{if(b.textContent===name)b.style.display='';});
+  }
+  function saveExercise(){
+    const name=document.getElementById('exName').value.trim();
+    if(!name){toast('Give the exercise a name first');return;}
+    const pattern=document.getElementById('exPattern').value;
+    const lib=document.querySelector('.lib');
+    const newBtn=document.querySelector('.lib-new');
+    const row=document.createElement('div');row.className='lib-ex';
+    row.setAttribute('onclick',"toast('Added to day')");
+    row.innerHTML='<div class="lib-ex-thumb"></div><div><div class="lib-ex-name">'+escapeHtml(name)+'</div><div class="lib-ex-pat">'+pattern+'</div></div><span class="lib-ex-add">+</span>';
+    lib.insertBefore(row,newBtn);
+    closeExModal();
+    toast(name+' saved to your library');
+  }
+  /* ── CLIENT RESOURCES ── */
+  function rmFilt(el,type){
+    el.parentNode.querySelectorAll('.rm-filt').forEach(b=>b.classList.remove('on'));
+    el.classList.add('on');
+    document.querySelectorAll('#rmGrid .rm-card').forEach(c=>{
+      c.style.display=(type==='all'||c.getAttribute('data-type')===type)?'':'none';
+    });
+  }
+  function openResModal(){document.getElementById('resModal').classList.add('open');}
+  function closeResModal(){
+    document.getElementById('resModal').classList.remove('open');
+    document.getElementById('resDrop').style.display='block';
+    document.getElementById('resPreview').classList.remove('show');
+    document.getElementById('resFill').style.width='0';
+    document.getElementById('resStatus').style.display='none';
+    ['resTitle','resDesc','resLink'].forEach(id=>document.getElementById(id).value='');
+  }
+  function simResUpload(){
+    document.getElementById('resDrop').style.display='none';
+    document.getElementById('resPreview').classList.add('show');
+    const fill=document.getElementById('resFill');fill.style.width='0';
+    let pct=0;
+    const int=setInterval(()=>{
+      pct+=Math.random()*24+10;
+      if(pct>=100){pct=100;clearInterval(int);document.getElementById('resStatus').style.display='block';toast('File uploaded');}
+      fill.style.width=pct+'%';
+    },240);
+  }
+  function saveResource(){
+    const title=document.getElementById('resTitle').value.trim();
+    if(!title){toast('Give it a title first');return;}
+    const cat=document.getElementById('resCat').value;
+    const vis=document.getElementById('resVis').value;
+    const grid=document.getElementById('rmGrid');
+    const upCard=grid.querySelector('.rm-upload-card');
+    const card=document.createElement('div');card.className='rm-card';card.setAttribute('data-type','doc');
+    const visClass=vis==='All clients'?'vis-all':'vis-some';
+    card.innerHTML='<div class="rm-cover doc"><span class="rm-type">Doc</span><span class="rm-vis '+visClass+'">'+escapeHtml(vis)+'</span><svg width="26" height="26" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2.5h6l3 3V17a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1z"/><path d="M12 2.5V6h3"/></svg></div>'
+      +'<div class="rm-info"><div class="rm-name">'+escapeHtml(title)+'</div><div class="rm-meta">Just uploaded</div></div>'
+      +'<div class="rm-foot"><span class="rm-cat">'+cat+'</span><div class="rm-actions"><button class="rm-act">&#9998;</button><button class="rm-act"><svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="7.2" cy="7" r="2.4"/><path d="M2.6 16c.4-3 2.2-4.6 4.6-4.6S11.4 13 11.8 16"/><circle cx="14" cy="7.8" r="2"/><path d="M13 11.6c1.9.1 3.3 1.5 3.6 3.9"/></svg></button></div></div>';
+    grid.insertBefore(card,upCard.nextSibling);
+    closeResModal();
+    toast(title+' published to clients');
+  }
+  /* ── ASSIGN HABITS & TASKS ── */
+  let htCurrentType='habit';
+  function openHtModal(){document.getElementById('htModal').classList.add('open');}
+  function closeHtModal(){
+    document.getElementById('htModal').classList.remove('open');
+    document.getElementById('htName').value='';
+    document.getElementById('htWhy').value='';
+  }
+  function htType(t){
+    htCurrentType=t;
+    document.getElementById('btnHabit').classList.toggle('on',t==='habit');
+    document.getElementById('btnTask').classList.toggle('on',t==='task');
+    document.getElementById('habitFields').style.display=(t==='habit')?'block':'none';
+    document.getElementById('taskFields').style.display=(t==='task')?'block':'none';
+    document.getElementById('htModalTitle').textContent=(t==='habit')?'Assign a habit':'Assign a task';
+    document.querySelector('#htModal .modal-sub').textContent=(t==='habit')
+      ? 'Small and repeatable beats big and occasional.'
+      : 'One thing, one deadline. Clear beats clever.';
+  }
+  function pickEmoji(el){el.parentNode.querySelectorAll('.emoji-opt').forEach(b=>b.classList.remove('on'));el.classList.add('on');}
+  function pickFreq(el){
+    el.parentNode.querySelectorAll('.freq-btn').forEach(b=>b.classList.remove('on'));
+    el.classList.add('on');
+    const days=document.getElementById('htDays').previousElementSibling;
+    const show=el.textContent==='Specific days'||el.textContent==='1\u00d7 a week';
+    document.getElementById('htDays').style.display=show?'flex':'none';
+    if(days)days.style.display=show?'block':'none';
+  }
+  function toggleRemind(){
+    const sw=document.getElementById('htRemindSwitch');
+    const on=sw.classList.toggle('on');
+    document.getElementById('htRemindOpts').classList.toggle('show',on);
+  }
+  function addAssignee(sel){
+    if(!sel.value)return;
+    const wrap=document.getElementById('htAssigned');
+    const chip=document.createElement('span');chip.className='assign-chip';
+    chip.innerHTML=escapeHtml(sel.value)+' <button onclick="this.closest(\'.assign-chip\').remove()">&times;</button>';
+    wrap.appendChild(chip);
+    sel.value='';
+  }
+  function saveHt(){
+    const name=document.getElementById('htName').value.trim();
+    if(!name){toast('Give it a name first');return;}
+    const count=document.querySelectorAll('#htAssigned .assign-chip').length;
+    const remind=document.getElementById('htRemindSwitch').classList.contains('on');
+    const time=document.getElementById('htRemindTime').value;
+    let msg=(htCurrentType==='habit'?'Habit':'Task')+' assigned to '+count+' client'+(count>1?'s':'');
+    if(remind)msg+=' \u00b7 reminder '+time;
+    closeHtModal();
+    toast(msg);
+  }
+  function escapeHtml(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+</script>
+</body>
+</html>
