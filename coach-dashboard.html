@@ -689,20 +689,15 @@
     <div class="page" id="roster">
       <div class="page-head">
         <div class="page-title">Your <em>clients</em></div>
-        <div class="page-sub">14 active &middot; 2 onboarding</div>
+        <div class="page-sub" id="rosterSub">Loading...</div>
       </div>
       <div class="roster-tools">
         <input class="search" placeholder="Search clients...">
         <button class="btn-sm" onclick="openHtModal()">+ Assign habit / task</button>
-        <button class="btn-sm primary" onclick="toast('Opens new client onboarding')">+ Add client</button>
+        <button class="btn-sm primary" onclick="go('pending')">+ Add client</button>
       </div>
-      <div class="roster-grid">
-        <div class="rc" onclick="openClient('Kia')"><div class="rc-top"><div class="rc-ava">K</div><div><div class="rc-name">Kia Stickney</div><div class="rc-meta">Week 3 of 4 &middot; Rebuild</div></div><div class="rc-flagdot" style="background:var(--amber)"></div></div><div class="rc-stats"><div class="rc-stat"><div class="rc-stat-num">3/4</div><div class="rc-stat-lbl">Workouts</div></div><div class="rc-stat"><div class="rc-stat-num">61</div><div class="rc-stat-lbl">Alignment</div></div><div class="rc-stat"><div class="rc-stat-num">Today</div><div class="rc-stat-lbl">Last active</div></div></div></div>
-        <div class="rc" onclick="openClient('Marisa')"><div class="rc-top"><div class="rc-ava">M</div><div><div class="rc-name">Marisa Chen</div><div class="rc-meta">Week 2 of 4 &middot; Reveal</div></div><div class="rc-flagdot" style="background:var(--red)"></div></div><div class="rc-stats"><div class="rc-stat"><div class="rc-stat-num">1/4</div><div class="rc-stat-lbl">Workouts</div></div><div class="rc-stat"><div class="rc-stat-num">52</div><div class="rc-stat-lbl">Alignment</div></div><div class="rc-stat"><div class="rc-stat-num">2d</div><div class="rc-stat-lbl">Last active</div></div></div></div>
-        <div class="rc" onclick="openClient('Amara')"><div class="rc-top"><div class="rc-ava">A</div><div><div class="rc-name">Amara Okafor</div><div class="rc-meta">Week 4 of 4 &middot; Refine</div></div><div class="rc-flagdot" style="background:var(--green)"></div></div><div class="rc-stats"><div class="rc-stat"><div class="rc-stat-num">4/4</div><div class="rc-stat-lbl">Workouts</div></div><div class="rc-stat"><div class="rc-stat-num">78</div><div class="rc-stat-lbl">Alignment</div></div><div class="rc-stat"><div class="rc-stat-num">Today</div><div class="rc-stat-lbl">Last active</div></div></div></div>
-        <div class="rc" onclick="openClient('Danielle')"><div class="rc-top"><div class="rc-ava">D</div><div><div class="rc-name">Danielle Ross</div><div class="rc-meta">Week 1 of 4 &middot; Anchor</div></div><div class="rc-flagdot" style="background:var(--red)"></div></div><div class="rc-stats"><div class="rc-stat"><div class="rc-stat-num">0/3</div><div class="rc-stat-lbl">Workouts</div></div><div class="rc-stat"><div class="rc-stat-num">48</div><div class="rc-stat-lbl">Alignment</div></div><div class="rc-stat"><div class="rc-stat-num">1d</div><div class="rc-stat-lbl">Last active</div></div></div></div>
-        <div class="rc" onclick="openClient('Simone')"><div class="rc-top"><div class="rc-ava">S</div><div><div class="rc-name">Simone Bell</div><div class="rc-meta">Week 3 of 4 &middot; Rebuild</div></div><div class="rc-flagdot" style="background:var(--green)"></div></div><div class="rc-stats"><div class="rc-stat"><div class="rc-stat-num">4/4</div><div class="rc-stat-lbl">Workouts</div></div><div class="rc-stat"><div class="rc-stat-num">70</div><div class="rc-stat-lbl">Alignment</div></div><div class="rc-stat"><div class="rc-stat-num">1d</div><div class="rc-stat-lbl">Last active</div></div></div></div>
-        <div class="rc" onclick="openClient('Priya')"><div class="rc-top"><div class="rc-ava">P</div><div><div class="rc-name">Priya Nair</div><div class="rc-meta">Week 2 of 4 &middot; Reveal</div></div><div class="rc-flagdot" style="background:var(--red)"></div></div><div class="rc-stats"><div class="rc-stat"><div class="rc-stat-num">2/4</div><div class="rc-stat-lbl">Workouts</div></div><div class="rc-stat"><div class="rc-stat-num">55</div><div class="rc-stat-lbl">Alignment</div></div><div class="rc-stat"><div class="rc-stat-num">5d</div><div class="rc-stat-lbl">Last active</div></div></div></div>
+      <div class="roster-grid" id="rosterGrid">
+        <div style="padding:20px;color:#8a7a90;font-size:12.5px;">Loading clients...</div>
       </div>
     </div>
 
@@ -710,10 +705,10 @@
     <div class="page" id="client">
       <button class="back-btn" onclick="go('roster')">&larr; All clients</button>
       <div class="detail-head">
-        <div class="dh-ava" id="cdAva">K</div>
-        <div><div class="dh-name" id="cdName">Kia Stickney</div><div class="dh-meta" id="cdMeta">Week 3 of 4 &middot; Rebuild phase &middot; Emerging Alignment</div></div>
+        <div class="dh-ava" id="cdAva">?</div>
+        <div><div class="dh-name" id="cdName">Loading...</div><div class="dh-meta" id="cdMeta"></div></div>
         <div class="dh-actions">
-          <button class="btn-sm" onclick="toast('Opens Kia\'s training calendar')"><svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="4.5" width="14" height="12" rx="2"/><line x1="3" y1="8" x2="17" y2="8"/><line x1="6.5" y1="2.5" x2="6.5" y2="5.5"/><line x1="13.5" y1="2.5" x2="13.5" y2="5.5"/></svg> Calendar</button>
+          <button class="btn-sm" onclick="toast('Calendar view coming soon')"><svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="4.5" width="14" height="12" rx="2"/><line x1="3" y1="8" x2="17" y2="8"/><line x1="6.5" y1="2.5" x2="6.5" y2="5.5"/><line x1="13.5" y1="2.5" x2="13.5" y2="5.5"/></svg> Calendar</button>
           <button class="btn-sm" onclick="toast('Quick-add: metrics, photo, note')">&#8635; Update all</button>
           <button class="btn-sm" onclick="toast('Opens message thread')">Message</button>
           <button class="btn-sm primary" onclick="go('builder')">Edit program</button>
@@ -723,43 +718,16 @@
         <div>
           <div class="panel">
             <div class="panel-h">Recent reflections</div>
-            <div class="refl-item"><div class="refl-wk"><span class="refl-wk-lbl">Week 3 &middot; this week</span><span class="q-status st-amber">Yellow</span></div><div class="refl-txt">"Barrier: work ran late 3 nights. Small step: 10-min walk at lunch instead of waiting for evening."</div></div>
-            <div class="refl-item"><div class="refl-wk"><span class="refl-wk-lbl">Week 2</span><span class="q-status st-green">Green</span></div><div class="refl-txt">"Prepping my bag the night before is the whole game. When it's packed, I don't argue with myself."</div></div>
-            <div class="refl-item"><div class="refl-wk"><span class="refl-wk-lbl">Week 1</span><span class="q-status st-amber">Yellow</span></div><div class="refl-txt">"Barrier: 5am felt impossible. Small step: lay clothes out, decide the night before."</div></div>
+            <div id="cdReflections"><div style="padding:10px 0;color:var(--muted);font-size:12.5px;">Loading...</div></div>
           </div>
           <div class="panel" style="margin-top:20px;">
-            <div class="panel-h">Coach notes <span style="font-size:11px;color:var(--muted);font-weight:400">(client can't see these)</span></div>
-            <div class="note-box"><div class="note-lbl">MI observation</div>Kia's language shifted from sustain talk (wk 1: "impossible") to change talk + self-authored solutions (wk 2-3). Accountability dimension is climbing. On the call Thursday, reinforce the identity win, not just the metric.</div>
+            <div class="panel-h">Coach notes <span style="font-size:11px;color:var(--muted);font-weight:400">(client can't see these, demo only, not saved yet)</span></div>
+            <div class="note-box"><div class="note-lbl">Note</div>Coach notes aren't wired to the database yet, this is placeholder text so the panel isn't empty.</div>
           </div>
           <div class="panel" style="margin-top:20px;">
             <div class="panel-h clickable"><span>Habits &amp; tasks</span><button class="btn-sm primary" style="padding:6px 13px;font-size:11.5px;" onclick="openHtModal()">+ Assign</button></div>
             <div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700;margin:4px 0 6px;">Habits</div>
-            <div class="ht-panel-row">
-              <div class="ht-emoji" style="background:#fdf0e0;">&#127803;</div>
-              <div class="ht-info"><div class="ht-name">Sunday prep</div><div class="ht-sub">1&times; a week &middot; Sundays <span class="ht-remind"><svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M6 8a4 4 0 0 1 8 0c0 3 1 4 1.5 4.5H4.5C5 12 6 11 6 8z"/><path d="M8.2 15a1.8 1.8 0 0 0 3.6 0"/></svg> 4:00 PM</span></div></div>
-              <div class="ht-streak">3<svg width="11" height="11" viewBox="0 0 20 20" fill="currentColor" style="vertical-align:-1px"><path d="M10 2c1 2.4-1.6 3.4-1.6 6a1.6 1.6 0 0 0 3.2 0c0-.6-.2-1-.5-1.4 2 .9 3.9 3 3.9 5.6a5 5 0 0 1-10 0c0-3.4 2.5-5.2 5-10.2z"/></svg></div>
-            </div>
-            <div class="ht-panel-row">
-              <div class="ht-emoji" style="background:#fdf6e0;">&#127827;</div>
-              <div class="ht-info"><div class="ht-name">Log meals</div><div class="ht-sub">3&times; a day <span class="ht-remind"><svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M6 8a4 4 0 0 1 8 0c0 3 1 4 1.5 4.5H4.5C5 12 6 11 6 8z"/><path d="M8.2 15a1.8 1.8 0 0 0 3.6 0"/></svg> 8a, 1p, 7p</span></div></div>
-              <div class="ht-streak">12<svg width="11" height="11" viewBox="0 0 20 20" fill="currentColor" style="vertical-align:-1px"><path d="M10 2c1 2.4-1.6 3.4-1.6 6a1.6 1.6 0 0 0 3.2 0c0-.6-.2-1-.5-1.4 2 .9 3.9 3 3.9 5.6a5 5 0 0 1-10 0c0-3.4 2.5-5.2 5-10.2z"/></svg></div>
-            </div>
-            <div class="ht-panel-row">
-              <div class="ht-emoji" style="background:#e8e4ef;">&#127769;</div>
-              <div class="ht-info"><div class="ht-name">Night prep for tomorrow</div><div class="ht-sub">Daily <span class="ht-remind"><svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M6 8a4 4 0 0 1 8 0c0 3 1 4 1.5 4.5H4.5C5 12 6 11 6 8z"/><path d="M8.2 15a1.8 1.8 0 0 0 3.6 0"/></svg> 9:00 PM</span></div></div>
-              <div class="ht-streak">6<svg width="11" height="11" viewBox="0 0 20 20" fill="currentColor" style="vertical-align:-1px"><path d="M10 2c1 2.4-1.6 3.4-1.6 6a1.6 1.6 0 0 0 3.2 0c0-.6-.2-1-.5-1.4 2 .9 3.9 3 3.9 5.6a5 5 0 0 1-10 0c0-3.4 2.5-5.2 5-10.2z"/></svg></div>
-            </div>
-            <div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700;margin:16px 0 6px;">Tasks</div>
-            <div class="ht-panel-row">
-              <div class="ht-emoji">&#128203;</div>
-              <div class="ht-info"><div class="ht-name">Complete 4-week check-in form</div><div class="ht-sub">Due Friday <span class="ht-remind"><svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M6 8a4 4 0 0 1 8 0c0 3 1 4 1.5 4.5H4.5C5 12 6 11 6 8z"/><path d="M8.2 15a1.8 1.8 0 0 0 3.6 0"/></svg> Thu 6:00 PM</span></div></div>
-              <span class="ht-due due-soon">2 days</span>
-            </div>
-            <div class="ht-panel-row">
-              <div class="ht-emoji">&#128247;</div>
-              <div class="ht-info"><div class="ht-name">Upload week 4 progress photo</div><div class="ht-sub">Due Sunday <span class="ht-remind"><svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M6 8a4 4 0 0 1 8 0c0 3 1 4 1.5 4.5H4.5C5 12 6 11 6 8z"/><path d="M8.2 15a1.8 1.8 0 0 0 3.6 0"/></svg> Sun 10:00 AM</span></div></div>
-              <span class="ht-due due-ok">5 days</span>
-            </div>
+            <div id="cdHabits"><div style="padding:10px 0;color:var(--muted);font-size:12.5px;">Loading...</div></div>
           </div>
           <div class="lens-panel" style="margin-top:20px;">
             <div class="lens-head">
@@ -776,100 +744,22 @@
               <button class="lens-tab" onclick="lensTab(this,'nutrition')">Nutrition</button>
             </div>
             <div class="lens-body" id="lensBody">
-              <div class="lens-insight"><span class="lens-dot ld-pos"></span><div><strong>Consistency is trending up.</strong> Workout completion went 2&rarr;3&rarr;3 over the last three weeks. Adherence is no longer the problem it was in the Anchor phase.</div></div>
-              <div class="lens-insight"><span class="lens-dot ld-watch"></span><div><strong>Steps are the soft spot.</strong> Missed the 9k goal 2 of 4 weeks, both tied to late work nights: a scheduling barrier, not a motivation one.</div></div>
-              <div class="lens-insight"><span class="lens-dot ld-pos"></span><div><strong>Reflection quality is deepening.</strong> Her check-ins moved from naming feelings to naming systems ("prep the night before"). That's identity-level change, not just compliance.</div></div>
-            </div>
-            <div class="lens-feedback">
-              <span class="lens-fb-lbl">Was this useful?</span>
-              <button class="fb-btn up" onclick="fbPick(this,'up')"><svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M7 9v7H4.5A1.5 1.5 0 0 1 3 14.5V10a1 1 0 0 1 1-1H7z"/><path d="M7 9l3.2-6c1 0 1.8.8 1.8 1.8v2.7H15a1.5 1.5 0 0 1 1.45 1.87l-1.2 5A1.5 1.5 0 0 1 13.8 16H7"/></svg></button>
-              <button class="fb-btn down" onclick="fbPick(this,'down')"><svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M7 11V4h2.5A1.5 1.5 0 0 1 11 5.5V10a1 1 0 0 1-1 1H7z"/><path d="M7 11l3.2 6c1 0 1.8-.8 1.8-1.8v-2.7H15a1.5 1.5 0 0 0 1.45-1.87l-1.2-5A1.5 1.5 0 0 0 13.8 4H7"/></svg></button>
-            </div>
-          </div>
-          <div class="lens-panel" style="margin-top:20px;">
-            <div class="lens-head">
-              <div class="lens-title"><span class="lens-orb">&#9998;</span>Draft a message</div>
-              <span class="lens-badge"><span class="spark"><span class="sunflower purple"></span></span>Your voice</span>
-            </div>
-            <div class="lens-tabs">
-              <button class="lens-tab on" onclick="draftTab(this,'overall')">Full status</button>
-              <button class="lens-tab" onclick="draftTab(this,'training')">Training</button>
-              <button class="lens-tab" onclick="draftTab(this,'nudge')">Gentle nudge</button>
-            </div>
-            <div class="draft-box">
-              <div class="draft-meta"><span class="spark"><span class="sunflower purple"></span></span>Drafted for Kia &middot; in your voice</div>
-              <div class="draft-text" id="draftText">Kia, three weeks in and the shift is real. You went from arguing with yourself at 5am to prepping the night before so there's nothing to argue about. That's not more discipline. That's you changing the setup so the right thing gets easier.
-
-Steps slipped a couple weeks, and both times it was late work nights, and that's a scheduling thing, not a you thing. Want to try the lunch walk you mentioned as the backup plan? Small, but it holds the line on the days the evening disappears.
-
-Proud of this stretch. Let's talk it through Thursday.</div>
-              <div class="draft-actions">
-                <button class="btn-sm primary" onclick="toast('Message sent to Kia')">Send</button>
-                <button class="btn-sm" onclick="toast('Opens editor')">Edit</button>
-                <button class="btn-sm" onclick="toast('Regenerating draft...')">Regenerate</button>
-              </div>
-              <div class="lens-feedback">
-                <span class="lens-fb-lbl">Sound like you?</span>
-                <button class="fb-btn up" onclick="fbPick(this,'up')"><svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M7 9v7H4.5A1.5 1.5 0 0 1 3 14.5V10a1 1 0 0 1 1-1H7z"/><path d="M7 9l3.2-6c1 0 1.8.8 1.8 1.8v2.7H15a1.5 1.5 0 0 1 1.45 1.87l-1.2 5A1.5 1.5 0 0 1 13.8 16H7"/></svg></button>
-                <button class="fb-btn down" onclick="fbPick(this,'down')"><svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M7 11V4h2.5A1.5 1.5 0 0 1 11 5.5V10a1 1 0 0 1-1 1H7z"/><path d="M7 11l3.2 6c1 0 1.8-.8 1.8-1.8v-2.7H15a1.5 1.5 0 0 0 1.45-1.87l-1.2-5A1.5 1.5 0 0 0 13.8 4H7"/></svg></button>
-              </div>
+              <div class="lens-insight"><span class="lens-dot ld-watch"></span><div><strong>Bellamy isn't connected yet.</strong> Real AI insights will appear here once Bellamy is wired up to an actual model, this is a preview of the interface only.</div></div>
             </div>
           </div>
         </div>
         <div>
           <div class="panel">
-            <div class="panel-h">Signature Profile</div>
-            <div class="dim"><div class="dim-row"><span class="dim-name">Identity&ndash;Action</span><span class="dim-pct">72%</span></div><div class="dim-track"><div class="dim-fill fill-hi" style="width:72%"></div></div></div>
-            <div class="dim"><div class="dim-row"><span class="dim-name">Self-Authorship</span><span class="dim-pct">68%</span></div><div class="dim-track"><div class="dim-fill fill-mid" style="width:68%"></div></div></div>
-            <div class="dim"><div class="dim-row"><span class="dim-name">Change Readiness</span><span class="dim-pct">64%</span></div><div class="dim-track"><div class="dim-fill fill-mid" style="width:64%"></div></div></div>
-            <div class="dim"><div class="dim-row"><span class="dim-name">Potential Activation</span><span class="dim-pct">56%</span></div><div class="dim-track"><div class="dim-fill fill-mid" style="width:56%"></div></div></div>
-            <div class="dim"><div class="dim-row"><span class="dim-name">Accountability</span><span class="dim-pct">44%</span></div><div class="dim-track"><div class="dim-fill fill-lo" style="width:44%"></div></div></div>
+            <div class="panel-h">Signature Profile <span style="font-size:11px;color:var(--muted);font-weight:400">(not built yet)</span></div>
+            <div style="padding:10px 0;color:var(--muted);font-size:12.5px;">The Signature Assessment tool hasn't been built yet, so there's no real score to show here.</div>
           </div>
           <div class="panel" style="margin-top:20px;">
             <div class="panel-h">Active goals <span style="font-size:11px;color:var(--muted);font-weight:400">(syncs to her app)</span></div>
-            <div class="refl-item"><div class="refl-txt" style="font-style:normal;color:var(--text);font-weight:600;font-size:13px;">Train 4x a week, consistently</div></div>
-            <div class="refl-item"><div class="refl-txt" style="font-style:normal;color:var(--text);font-weight:600;font-size:13px;">Hit 9,000 steps most days</div></div>
+            <div id="cdGoals"><div style="padding:10px 0;color:var(--muted);font-size:12.5px;">Loading...</div></div>
           </div>
           <div class="panel" style="margin-top:20px;">
-            <div class="panel-h">Training</div>
-            <div class="mini-stat-row">
-              <div class="mini-stat"><div class="mini-stat-num">3</div><div class="mini-stat-lbl">Last 7 days</div></div>
-              <div class="mini-stat"><div class="mini-stat-num">11</div><div class="mini-stat-lbl">Last 30 days</div></div>
-            </div>
-            <div style="font-size:11px;letter-spacing:0.5px;text-transform:uppercase;color:var(--muted);font-weight:600;margin:6px 0 8px;">Next week's assignments</div>
-            <div class="assign-item"><span class="assign-dot"></span><span class="assign-day">Mon &middot; Lower Body</span><span class="assign-check" onclick="toast('Opens latest workout result')">Check result &rarr;</span></div>
-            <div class="assign-item"><span class="assign-dot"></span><span class="assign-day">Wed &middot; Upper Body</span></div>
-            <div class="assign-item"><span class="assign-dot"></span><span class="assign-day">Fri &middot; Lower Body</span></div>
-            <div class="assign-item"><span class="assign-dot"></span><span class="assign-day">Sat &middot; Full Body</span></div>
-          </div>
-          <div class="panel" style="margin-top:20px;">
-            <div class="panel-h clickable" onclick="toast('Expands full metrics history')">Body metrics <span class="h-link">Full history &rarr;</span></div>
-            <div class="metric-graphs">
-              <div class="metric-card">
-                <div class="metric-top"><span class="metric-name">Body weight</span><span class="metric-val">148<small> &darr;3</small></span></div>
-                <svg viewBox="0 0 120 44" style="width:100%;height:44px;"><polyline points="0,10 24,14 48,12 72,20 96,26 120,30" fill="none" stroke="var(--purple-rich)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </div>
-              <div class="metric-card">
-                <div class="metric-top"><span class="metric-name">Body fat %</span><span class="metric-val">26<small> &darr;2</small></span></div>
-                <svg viewBox="0 0 120 44" style="width:100%;height:44px;"><polyline points="0,12 24,16 48,18 72,22 96,28 120,32" fill="none" stroke="var(--purple-mid)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </div>
-            </div>
-          </div>
-          <div class="panel" style="margin-top:20px;">
-            <div class="panel-h clickable"><span>Progress photos</span><button class="btn-sm" style="padding:6px 12px;font-size:11px;" onclick="toast('Upload a progress photo')">+ Add</button></div>
-            <div class="photo-gal">
-              <div class="photo-thumb" onclick="toast('Opens photo')"><div class="photo-date">Wk 1</div></div>
-              <div class="photo-thumb" onclick="toast('Opens photo')"><div class="photo-date">Wk 2</div></div>
-              <div class="photo-thumb" onclick="toast('Opens photo')"><div class="photo-date">Wk 3</div></div>
-            </div>
-            <div style="text-align:left;margin-top:10px;"><span class="h-link" style="cursor:pointer;color:var(--purple-mid);font-size:11px;font-weight:600;" onclick="toast('Opens full photo timeline')">View all &rarr;</span></div>
-          </div>
-          <div class="panel" style="margin-top:20px;">
-            <div class="panel-h">Limitations &amp; injuries <span style="font-size:11px;color:var(--muted);font-weight:400">(private)</span></div>
-            <div class="injury-box">
-              <div class="inj-lbl">&#9888; Keep in mind when programming</div>
-              Right knee: prior meniscus repair (2022). Avoid deep loaded flexion; goblet squat to box is her current safe depth. No plyometrics. Cleared for hinge and lunge patterns with control.
-            </div>
+            <div class="panel-h">Training <span style="font-size:11px;color:var(--muted);font-weight:400">(workout builder not built yet)</span></div>
+            <div style="padding:10px 0;color:var(--muted);font-size:12.5px;">Workout assignment and history will show here once the workout builder is connected.</div>
           </div>
         </div>
       </div>
@@ -1494,23 +1384,80 @@ Coaching reminders:
     if(navMap[id])document.getElementById(navMap[id]).classList.add('on');
     if(id==='desk')renderCal();
     if(id==='pending')loadPending();
+    if(id==='roster')loadRoster();
     document.querySelector('.main').scrollTop=0;
   }
-  const clientData={
-    Kia:['K','Kia Stickney','Week 3 of 4 \u00b7 Rebuild phase \u00b7 Emerging Alignment'],
-    Marisa:['M','Marisa Chen','Week 2 of 4 \u00b7 Reveal phase \u00b7 Foundational Work'],
-    Danielle:['D','Danielle Ross','Week 1 of 4 \u00b7 Anchor phase \u00b7 Foundational Work'],
-    Priya:['P','Priya Nair','Week 2 of 4 \u00b7 Reveal phase \u00b7 Emerging Alignment'],
-    Amara:['A','Amara Okafor','Week 4 of 4 \u00b7 Refine phase \u00b7 Strong Alignment'],
-    Simone:['S','Simone Bell','Week 3 of 4 \u00b7 Rebuild phase \u00b7 Emerging Alignment'],
-    Rochelle:['R','Rochelle Diaz','Week 2 of 4 \u00b7 Reveal phase \u00b7 Emerging Alignment']
-  };
-  function openClient(name){
-    const d=clientData[name]||clientData.Kia;
-    document.getElementById('cdAva').textContent=d[0];
-    document.getElementById('cdName').textContent=d[1];
-    document.getElementById('cdMeta').textContent=d[2];
+  // ── Real roster ──
+  async function loadRoster(){
+    const grid = document.getElementById('rosterGrid');
+    const sub = document.getElementById('rosterSub');
+    const { data: clients, error } = await supabaseClient
+      .from('profiles').select('id, full_name, email, created_at')
+      .eq('role', 'client').eq('status', 'approved')
+      .order('created_at', { ascending: false });
+
+    if (error){
+      grid.innerHTML = '<div style="padding:20px;color:#b0574f;font-size:12.5px;">Couldn\u2019t load clients.</div>';
+      return;
+    }
+    sub.textContent = clients.length + ' active';
+    if (!clients.length){
+      grid.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:12.5px;">No approved clients yet. Check Pending sign-ups to approve someone.</div>';
+      return;
+    }
+    grid.innerHTML = clients.map(c => {
+      const name = c.full_name || c.email;
+      const initial = (c.full_name || c.email || '?').charAt(0).toUpperCase();
+      const since = new Date(c.created_at).toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
+      return `<div class="rc" onclick="openClient('${c.id}')">
+        <div class="rc-top"><div class="rc-ava">${initial}</div><div><div class="rc-name">${name}</div><div class="rc-meta">Client since ${since}</div></div></div>
+      </div>`;
+    }).join('');
+  }
+
+  async function openClient(clientId){
     go('client');
+    document.getElementById('cdName').textContent = 'Loading...';
+    document.getElementById('cdMeta').textContent = '';
+    document.getElementById('cdReflections').innerHTML = '<div style="padding:10px 0;color:var(--muted);font-size:12.5px;">Loading...</div>';
+    document.getElementById('cdGoals').innerHTML = '<div style="padding:10px 0;color:var(--muted);font-size:12.5px;">Loading...</div>';
+    document.getElementById('cdHabits').innerHTML = '<div style="padding:10px 0;color:var(--muted);font-size:12.5px;">Loading...</div>';
+
+    const [{ data: profile }, { data: reflections }, { data: goals }, { data: habits }] = await Promise.all([
+      supabaseClient.from('profiles').select('full_name, email, created_at').eq('id', clientId).single(),
+      supabaseClient.from('checkins').select('*').eq('client_id', clientId).order('week_start', { ascending: false }).limit(5),
+      supabaseClient.from('goals').select('*').eq('client_id', clientId).order('created_at', { ascending: true }),
+      supabaseClient.from('habits').select('*').eq('client_id', clientId).eq('archived', false)
+    ]);
+
+    if (!profile){ document.getElementById('cdName').textContent = 'Client not found'; return; }
+
+    const name = profile.full_name || profile.email;
+    const initial = (profile.full_name || profile.email || '?').charAt(0).toUpperCase();
+    document.getElementById('cdAva').textContent = initial;
+    document.getElementById('cdName').textContent = name;
+    document.getElementById('cdMeta').textContent = 'Client since ' + new Date(profile.created_at).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+
+    const reflHtml = (reflections && reflections.length)
+      ? reflections.map(r => {
+          const flag = r.met_goal ? 'st-green' : 'st-amber';
+          const label = r.met_goal ? 'Green' : 'Yellow';
+          const note = r.wins || r.struggles || '';
+          const wk = new Date(r.week_start + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+          return `<div class="refl-item"><div class="refl-wk"><span class="refl-wk-lbl">Week of ${wk}</span><span class="q-status ${flag}">${label}</span></div>${note ? `<div class="refl-txt">"${note}"</div>` : ''}</div>`;
+        }).join('')
+      : '<div style="padding:10px 0;color:var(--muted);font-size:12.5px;">No reflections submitted yet.</div>';
+    document.getElementById('cdReflections').innerHTML = reflHtml;
+
+    const goalsHtml = (goals && goals.length)
+      ? goals.map(g => `<div class="refl-item"><div class="refl-txt" style="font-style:normal;color:var(--text);font-weight:600;font-size:13px;">${g.status === 'done' ? '\u2713 ' : ''}${g.name}</div></div>`).join('')
+      : '<div style="padding:10px 0;color:var(--muted);font-size:12.5px;">No goals set yet.</div>';
+    document.getElementById('cdGoals').innerHTML = goalsHtml;
+
+    const habitsHtml = (habits && habits.length)
+      ? habits.map(h => `<div class="ht-panel-row"><div class="ht-emoji" style="background:#efe9f2;">${h.emoji || '\u{1F331}'}</div><div class="ht-info"><div class="ht-name">${h.name}</div><div class="ht-sub">${h.frequency}</div></div><div class="ht-streak">${h.streak}<svg width="11" height="11" viewBox="0 0 20 20" fill="currentColor" style="vertical-align:-1px"><path d="M10 2c1 2.4-1.6 3.4-1.6 6a1.6 1.6 0 0 0 3.2 0c0-.6-.2-1-.5-1.4 2 .9 3.9 3 3.9 5.6a5 5 0 0 1-10 0c0-3.4 2.5-5.2 5-10.2z"/></svg></div></div>`).join('')
+      : '<div style="padding:10px 0;color:var(--muted);font-size:12.5px;">No habits assigned yet.</div>';
+    document.getElementById('cdHabits').innerHTML = habitsHtml;
   }
   function segPick(el){el.parentNode.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('on'));el.classList.add('on');}
   function postAnn(){
