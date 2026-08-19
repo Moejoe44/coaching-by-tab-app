@@ -689,9 +689,9 @@
           </div>
           <div class="panel" style="margin-top:20px;">
             <div class="panel-h">Coach notes <span style="font-size:11px;color:var(--muted);font-weight:400">(client can't see these)</span></div>
-            <textarea class="ta" id="cdNotesArea" style="min-height:100px;margin-top:6px;" placeholder="MI observations, things to remember, what to bring up on the next call..."></textarea>
-            <button class="btn-sm primary" style="margin-top:8px;padding:8px 16px;font-size:12px;" onclick="saveCoachNote()">Save note</button>
-            <span id="cdNotesSaved" style="font-size:11px;color:var(--green);margin-left:10px;display:none;">Saved</span>
+            <textarea class="ta" id="cdNotesArea" style="min-height:70px;margin-top:6px;" placeholder="Add a dated note, MI observations, what to bring up next call..."></textarea>
+            <button class="btn-sm primary" style="margin-top:8px;padding:8px 16px;font-size:12px;" onclick="addCoachNote()">+ Add note</button>
+            <div id="cdNotesList" style="margin-top:16px;"></div>
           </div>
           <div class="panel" style="margin-top:20px;">
             <div class="panel-h clickable"><span>Habits &amp; tasks</span><button class="btn-sm primary" style="padding:6px 13px;font-size:11.5px;" onclick="openHtModal()">+ Assign</button></div>
@@ -1575,16 +1575,32 @@ Coaching reminders:
 
   let cdCurrentClientId = null;
 
-  async function saveCoachNote(){
-    if (!cdCurrentClientId) return;
-    const note = document.getElementById('cdNotesArea').value;
-    const { error } = await supabaseClient.from('coach_notes')
-      .upsert({ client_id: cdCurrentClientId, note, updated_at: new Date().toISOString() }, { onConflict: 'client_id' });
+  async function loadCoachNotes(clientId){
+    const { data: notes, error } = await supabaseClient
+      .from('coach_notes').select('*').eq('client_id', clientId).order('updated_at', { ascending: false });
+    const list = document.getElementById('cdNotesList');
+    if (error || !notes || !notes.length){
+      list.innerHTML = '<div style="padding:6px 0;color:var(--muted);font-size:12px;">No notes yet.</div>';
+      return;
+    }
+    list.innerHTML = notes.map(n => {
+      const when = new Date(n.updated_at).toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' });
+      return `<div class="note-box"><div class="note-lbl">${when}</div>${n.note}</div>`;
+    }).join('');
+  }
 
+  async function addCoachNote(){
+    if (!cdCurrentClientId) return;
+    const ta = document.getElementById('cdNotesArea');
+    const note = ta.value.trim();
+    if (!note){ toast('Write something first'); return; }
+
+    const { error } = await supabaseClient.from('coach_notes').insert({ client_id: cdCurrentClientId, note });
     if (error){ toast('Something went wrong saving the note'); return; }
-    const saved = document.getElementById('cdNotesSaved');
-    saved.style.display = 'inline';
-    setTimeout(() => { saved.style.display = 'none'; }, 2000);
+
+    ta.value = '';
+    toast('Note added');
+    loadCoachNotes(cdCurrentClientId);
   }
 
   async function openClient(clientId){
@@ -1597,17 +1613,16 @@ Coaching reminders:
     document.getElementById('cdHabits').innerHTML = '<div style="padding:10px 0;color:var(--muted);font-size:12.5px;">Loading...</div>';
     document.getElementById('cdWorkouts').innerHTML = '<div style="padding:10px 0;color:var(--muted);font-size:12.5px;">Loading...</div>';
     document.getElementById('cdNotesArea').value = '';
+    document.getElementById('cdNotesList').innerHTML = '<div style="padding:6px 0;color:var(--muted);font-size:12px;">Loading...</div>';
 
-    const [{ data: profile }, { data: reflections }, { data: goals }, { data: habits }, { data: workouts }, { data: noteRow }] = await Promise.all([
+    const [{ data: profile }, { data: reflections }, { data: goals }, { data: habits }, { data: workouts }] = await Promise.all([
       supabaseClient.from('profiles').select('full_name, email, created_at').eq('id', clientId).single(),
       supabaseClient.from('checkins').select('*').eq('client_id', clientId).order('week_start', { ascending: false }).limit(5),
       supabaseClient.from('goals').select('*').eq('client_id', clientId).order('created_at', { ascending: true }),
       supabaseClient.from('habits').select('*').eq('client_id', clientId).eq('archived', false),
-      supabaseClient.from('workouts').select('*, workout_exercises(id)').eq('client_id', clientId).gte('scheduled_date', todayLocal()).order('scheduled_date', { ascending: true }),
-      supabaseClient.from('coach_notes').select('note').eq('client_id', clientId).maybeSingle()
+      supabaseClient.from('workouts').select('*, workout_exercises(id)').eq('client_id', clientId).gte('scheduled_date', todayLocal()).order('scheduled_date', { ascending: true })
     ]);
-
-    document.getElementById('cdNotesArea').value = (noteRow && noteRow.note) ? noteRow.note : '';
+    loadCoachNotes(clientId);
 
     if (!profile){ document.getElementById('cdName').textContent = 'Client not found'; return; }
 
