@@ -390,6 +390,7 @@
     loadHabits();
     loadGoals();
     loadCheckinStatus();
+    loadTodaysWorkout();
   })();
 
   async function logOut(){
@@ -429,13 +430,8 @@
       <div class="home-grid">
         <div class="home-main">
           <div class="sec-label">Today's training</div>
-          <div class="card">
-            <div class="wk-head"><div><div class="wk-day">Day 4 &middot; Lower Body</div><div class="wk-meta">Rebuild block &middot; Week 3 of 4</div></div><span class="wk-pill">45 min</span></div>
-            <div class="ex"><div class="ex-thumb"></div><div class="ex-info"><div class="ex-name">Goblet Squat</div><div class="ex-pattern">Squat</div><div class="ex-scheme">4 &times; 8 &middot; RPE 7 &middot; 90s rest</div></div><button class="ex-alt" onclick="openAlt('Goblet Squat')">Swap &#8646;</button></div>
-            <div class="ex"><div class="ex-thumb"></div><div class="ex-info"><div class="ex-name">Romanian Deadlift</div><div class="ex-pattern">Hinge</div><div class="ex-scheme">3 &times; 10 &middot; RPE 8 &middot; 90s rest</div></div><button class="ex-alt" onclick="openAlt('Romanian Deadlift')">Swap &#8646;</button></div>
-            <div class="ex"><div class="ex-thumb"></div><div class="ex-info"><div class="ex-name">Walking Lunge</div><div class="ex-pattern">Lunge</div><div class="ex-scheme">3 &times; 12 each &middot; RPE 7 &middot; 60s rest</div></div><button class="ex-alt" onclick="openAlt('Walking Lunge')">Swap &#8646;</button></div>
-            <div class="ex"><div class="ex-thumb"></div><div class="ex-info"><div class="ex-name">Plank Hold</div><div class="ex-pattern">Core</div><div class="ex-scheme">3 &times; 45s &middot; 45s rest</div></div><button class="ex-alt" onclick="openAlt('Plank Hold')">Swap &#8646;</button></div>
-            <button class="wk-log-btn" onclick="go('log')">Start workout &rarr;</button>
+          <div class="card" id="trainingCard">
+            <div style="padding:10px 0;color:#8a7a90;font-size:12.5px;">Loading today's workout...</div>
           </div>
           <div class="sec-label">Your goals</div>
           <div class="card" id="goalsCard">
@@ -806,6 +802,41 @@
     }).join('');
   }
 
+  // ── Real today's training ──
+  let todaysWorkoutId = null;
+
+  async function loadTodaysWorkout(){
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    const card = document.getElementById('trainingCard');
+    if (!session) return;
+
+    const today = new Date().toISOString().slice(0,10);
+    const { data: rows, error } = await supabaseClient
+      .from('workouts').select('*, workout_exercises(*)').eq('client_id', session.user.id).eq('scheduled_date', today).limit(1);
+
+    if (error || !rows || !rows.length){
+      todaysWorkoutId = null;
+      workout.length = 0;
+      card.innerHTML = '<div style="padding:10px 0;color:#8a7a90;font-size:12.5px;">Nothing assigned for today. Rest day, or check with Tab.</div>';
+      return;
+    }
+
+    const w = rows[0];
+    todaysWorkoutId = w.id;
+    const exercises = (w.workout_exercises || []).sort((a,b) => a.order_index - b.order_index);
+
+    workout.length = 0;
+    exercises.forEach(e => {
+      const scheme = `Target: ${e.sets} \u00d7 ${e.reps}` + (e.rpe ? ` \u00b7 RPE ${e.rpe}` : '') + (e.rest_seconds ? ` \u00b7 ${e.rest_seconds}s rest` : '');
+      workout.push({ name: e.name, pattern: e.pattern || '', target: scheme, sets: e.sets });
+    });
+
+    card.innerHTML = `
+      <div class="wk-head"><div><div class="wk-day">${w.day_label}</div><div class="wk-meta">Assigned by Tab</div></div></div>
+      ${exercises.map(e => `<div class="ex"><div class="ex-thumb"></div><div class="ex-info"><div class="ex-name">${e.name}</div><div class="ex-pattern">${e.pattern||''}</div><div class="ex-scheme">${e.sets} \u00d7 ${e.reps}${e.rpe?' \u00b7 RPE '+e.rpe:''}${e.rest_seconds?' \u00b7 '+e.rest_seconds+'s rest':''}</div></div></div>`).join('')}
+      <button class="wk-log-btn" onclick="go('log')">Start workout &rarr;</button>`;
+  }
+
   async function loadGoals(){
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) return;
@@ -1046,16 +1077,11 @@
   function escapeHtml(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 
   /* ── ACTIVE WORKOUT ── */
-  const workout=[
-    {name:'Goblet Squat',pattern:'Squat',target:'Target: 4 \u00d7 8 \u00b7 RPE 7 \u00b7 90s rest',sets:4},
-    {name:'Romanian Deadlift',pattern:'Hinge',target:'Target: 3 \u00d7 10 \u00b7 RPE 8 \u00b7 90s rest',sets:3},
-    {name:'Walking Lunge',pattern:'Lunge',target:'Target: 3 \u00d7 12 each \u00b7 RPE 7 \u00b7 60s rest',sets:3},
-    {name:'Plank Hold',pattern:'Core',target:'Target: 3 \u00d7 45s \u00b7 45s rest',sets:3}
-  ];
-  let woCur=0, woSeconds=0, woTimerInt=null, woDone=[false,false,false,false];
+  const workout=[];
+  let woCur=0, woSeconds=0, woTimerInt=null, woDone=[];
 
   function startWorkout(){
-    woCur=0; woSeconds=0; woDone=[false,false,false,false];
+    woCur=0; woSeconds=0; woDone=new Array(workout.length).fill(false);
     if(woTimerInt) clearInterval(woTimerInt);
     woTimerInt=setInterval(function(){
       woSeconds++;
@@ -1106,10 +1132,17 @@
   function nextExercise(){
     if(woCur<workout.length-1){ woDone[woCur]=true; woCur++; renderExercise(); }
   }
-  function finishWorkout(){
+  async function finishWorkout(){
     stopWorkoutTimer();
     const m=String(Math.floor(woSeconds/60)).padStart(2,'0');
     const s=String(woSeconds%60).padStart(2,'0');
+
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (session && todaysWorkoutId){
+      await supabaseClient.from('workout_logs').insert({
+        workout_id: todaysWorkoutId, client_id: session.user.id, duration_seconds: woSeconds
+      });
+    }
     alert('Workout logged, '+m+':'+s+' total. This flows straight into your weekly highlights.');
     go('home');
   }

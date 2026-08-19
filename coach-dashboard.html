@@ -725,8 +725,8 @@
             <div id="cdGoals"><div style="padding:10px 0;color:var(--muted);font-size:12.5px;">Loading...</div></div>
           </div>
           <div class="panel" style="margin-top:20px;">
-            <div class="panel-h">Training <span style="font-size:11px;color:var(--muted);font-weight:400">(workout builder not built yet)</span></div>
-            <div style="padding:10px 0;color:var(--muted);font-size:12.5px;">Workout assignment and history will show here once the workout builder is connected.</div>
+            <div class="panel-h clickable"><span>Training</span><button class="btn-sm primary" style="padding:6px 13px;font-size:11.5px;" onclick="go('builder')">+ Assign workout</button></div>
+            <div id="cdWorkouts"><div style="padding:10px 0;color:var(--muted);font-size:12.5px;">Loading...</div></div>
           </div>
         </div>
       </div>
@@ -995,65 +995,34 @@ Coaching reminders:
     <div class="page" id="builder">
       <div class="page-head">
         <div class="page-title">Workout <em>builder</em></div>
-        <div class="page-sub">Building Kia's Rebuild block &middot; drag exercises from your library into any day.</div>
+        <div class="page-sub">Pick a client and a day, add exercises, save. Assigns straight to their app.</div>
       </div>
-      <div class="builder">
-        <div class="builder-main">
-          <div class="block-bar">
-            <div><div class="block-name">Rebuild Block</div><div class="block-meta">Kia Stickney &middot; 4 weeks &middot; 4 days/week</div></div>
-            <button class="tmpl-btn" onclick="toast('Opens template library')">Start from template</button>
-          </div>
-          <div class="week-tabs">
-            <button class="week-tab on" onclick="weekTab(this)">Week 1</button>
-            <button class="week-tab" onclick="weekTab(this)">Week 2</button>
-            <button class="week-tab" onclick="weekTab(this)">Week 3</button>
-            <button class="week-tab" onclick="weekTab(this)">Week 4</button>
-          </div>
 
-          <div class="day-block">
-            <div class="day-head"><div class="day-title">Day 1</div><div class="day-tagn">&middot; Lower Body</div><button class="day-add" onclick="toast('Pick from library \u2192')">+ Add exercise</button></div>
-            <div id="day1">
-              <div class="bex"><span class="bex-drag">&#8942;&#8942;</span><div class="bex-thumb"></div><div class="bex-info"><div class="bex-name">Goblet Squat</div><div class="bex-pattern">Squat</div><div class="bex-scheme"><span class="scheme-chip">4&times;8</span><span class="scheme-chip">RPE 7</span><span class="scheme-chip">90s rest</span></div></div><button class="bex-x" onclick="this.closest('.bex').remove()">&times;</button></div>
-              <div class="bex"><span class="bex-drag">&#8942;&#8942;</span><div class="bex-thumb"></div><div class="bex-info"><div class="bex-name">Romanian Deadlift</div><div class="bex-pattern">Hinge</div><div class="bex-scheme"><span class="scheme-chip">3&times;10</span><span class="scheme-chip">RPE 8</span><span class="scheme-chip">90s rest</span></div></div><button class="bex-x" onclick="this.closest('.bex').remove()">&times;</button></div>
-              <div class="bex"><span class="bex-drag">&#8942;&#8942;</span><div class="bex-thumb"></div><div class="bex-info"><div class="bex-name">Walking Lunge</div><div class="bex-pattern">Lunge</div><div class="bex-scheme"><span class="scheme-chip">3&times;12</span><span class="scheme-chip">RPE 7</span><span class="scheme-chip">60s rest</span></div></div><button class="bex-x" onclick="this.closest('.bex').remove()">&times;</button></div>
-            </div>
-          </div>
+      <div class="card" style="max-width:760px;padding:26px 28px;">
+        <label class="field-lbl">Client</label>
+        <select class="select-in" id="bClient" style="margin-bottom:16px;width:100%;"><option>Loading clients...</option></select>
 
-          <div class="day-block">
-            <div class="day-head"><div class="day-title">Day 2</div><div class="day-tagn">&middot; Upper Body</div><button class="day-add" onclick="toast('Pick from library \u2192')">+ Add exercise</button></div>
-            <div id="day2">
-              <div class="bex"><span class="bex-drag">&#8942;&#8942;</span><div class="bex-thumb"></div><div class="bex-info"><div class="bex-name">DB Bench Press</div><div class="bex-pattern">Horizontal Push</div><div class="bex-scheme"><span class="scheme-chip">4&times;8</span><span class="scheme-chip">RPE 7</span><span class="scheme-chip">90s rest</span></div></div><button class="bex-x" onclick="this.closest('.bex').remove()">&times;</button></div>
-              <div class="bex"><span class="bex-drag">&#8942;&#8942;</span><div class="bex-thumb"></div><div class="bex-info"><div class="bex-name">Lat Pulldown</div><div class="bex-pattern">Vertical Pull</div><div class="bex-scheme"><span class="scheme-chip">3&times;10</span><span class="scheme-chip">RPE 8</span><span class="scheme-chip">75s rest</span></div></div><button class="bex-x" onclick="this.closest('.bex').remove()">&times;</button></div>
-            </div>
+        <div style="display:flex;gap:14px;margin-bottom:16px;">
+          <div style="flex:1;">
+            <label class="field-lbl">Day label</label>
+            <input class="select-in" id="bDayLabel" placeholder="e.g. Lower Body" style="width:100%;">
           </div>
-
-          <div class="day-block">
-            <div class="day-head"><div class="day-title">Day 3</div><div class="day-tagn">&middot; Rest / mobility</div><button class="day-add" onclick="toast('Pick from library \u2192')">+ Add exercise</button></div>
-            <div id="day3"><div class="empty-day">Rest day: drag an exercise here to add optional movement.</div></div>
+          <div style="flex:1;">
+            <label class="field-lbl">Date</label>
+            <input class="select-in" type="date" id="bDate" style="width:100%;">
           </div>
         </div>
 
-        <!-- LIBRARY PANEL -->
-        <div class="lib">
-          <div class="lib-h">Exercise library</div>
-          <div class="lib-sub">Your movements, each with your demo video. Tap + to add to a day, or build a new one below.</div>
-          <input class="lib-search" placeholder="Search exercises...">
-          <div class="lib-filters">
-            <span class="lib-filt on" onclick="libFilt(this)">All</span>
-            <span class="lib-filt" onclick="libFilt(this)">Squat</span>
-            <span class="lib-filt" onclick="libFilt(this)">Hinge</span>
-            <span class="lib-filt" onclick="libFilt(this)">Push</span>
-            <span class="lib-filt" onclick="libFilt(this)">Pull</span>
-            <span class="lib-filt" onclick="libFilt(this)">Core</span>
-          </div>
-          <div class="lib-ex" onclick="toast('Added to Day 1')"><div class="lib-ex-thumb"></div><div><div class="lib-ex-name">Back Squat</div><div class="lib-ex-pat">Squat</div></div><span class="lib-ex-add">+</span></div>
-          <div class="lib-ex" onclick="toast('Added to Day 1')"><div class="lib-ex-thumb"></div><div><div class="lib-ex-name">Bulgarian Split Squat</div><div class="lib-ex-pat">Lunge</div></div><span class="lib-ex-add">+</span></div>
-          <div class="lib-ex" onclick="toast('Added to Day 1')"><div class="lib-ex-thumb"></div><div><div class="lib-ex-name">Hip Thrust</div><div class="lib-ex-pat">Hinge</div></div><span class="lib-ex-add">+</span></div>
-          <div class="lib-ex" onclick="toast('Added to Day 2')"><div class="lib-ex-thumb"></div><div><div class="lib-ex-name">Overhead Press</div><div class="lib-ex-pat">Vertical Push</div></div><span class="lib-ex-add">+</span></div>
-          <div class="lib-ex" onclick="toast('Added to Day 2')"><div class="lib-ex-thumb"></div><div><div class="lib-ex-name">Seated Row</div><div class="lib-ex-pat">Horizontal Pull</div></div><span class="lib-ex-add">+</span></div>
-          <div class="lib-ex" onclick="toast('Added to day')"><div class="lib-ex-thumb"></div><div><div class="lib-ex-name">Plank Hold</div><div class="lib-ex-pat">Core</div></div><span class="lib-ex-add">+</span></div>
-          <button class="lib-new" onclick="openExModal()">+ New exercise</button>
-        </div>
+        <label class="field-lbl">Exercises</label>
+        <div id="bExRows"></div>
+        <button class="btn-sm" onclick="addBExRow()" style="margin:8px 0 20px;">+ Add exercise</button>
+
+        <button class="btn-sm primary" style="width:100%;padding:13px;" onclick="saveWorkout()">Save &amp; assign workout</button>
+      </div>
+
+      <div class="sec-label" style="margin-top:26px;">Upcoming assigned workouts</div>
+      <div class="queue-card" id="bUpcoming">
+        <div style="padding:20px;color:var(--muted);font-size:12.5px;">Pick a client above to see their assigned workouts.</div>
       </div>
     </div>
 
@@ -1354,6 +1323,7 @@ Coaching reminders:
     if(id==='roster')loadRoster();
     if(id==='queue')loadQueue();
     if(id==='home'){loadHomeStats();loadHomeQueuePreview();}
+    if(id==='builder')loadBuilderClients();
     document.querySelector('.main').scrollTop=0;
   }
   // ── Real check-in queue ──
@@ -1422,6 +1392,113 @@ Coaching reminders:
   }
 
   // ── Real home dashboard stats ──
+  // ── Real workout builder ──
+  let bExCount = 0;
+
+  function addBExRow(){
+    bExCount++;
+    const id = 'bex-' + bExCount;
+    const row = document.createElement('div');
+    row.id = id;
+    row.style.cssText = 'display:flex;gap:8px;margin-bottom:8px;align-items:center;';
+    row.innerHTML = `
+      <input class="select-in" placeholder="Exercise name" style="flex:2;" data-f="name">
+      <input class="select-in" placeholder="Pattern" style="flex:1.2;" data-f="pattern">
+      <input class="select-in" type="number" placeholder="Sets" style="width:66px;" data-f="sets" value="3">
+      <input class="select-in" placeholder="Reps" style="width:70px;" data-f="reps" value="10">
+      <input class="select-in" placeholder="RPE" style="width:60px;" data-f="rpe">
+      <input class="select-in" type="number" placeholder="Rest s" style="width:70px;" data-f="rest">
+      <button class="bex-x" onclick="document.getElementById('${id}').remove()" style="border:none;background:none;color:var(--muted);font-size:18px;cursor:pointer;">&times;</button>`;
+    document.getElementById('bExRows').appendChild(row);
+  }
+
+  async function loadBuilderClients(){
+    const sel = document.getElementById('bClient');
+    const { data: clients, error } = await supabaseClient
+      .from('profiles').select('id, full_name, email').eq('role','client').eq('status','approved')
+      .order('full_name', { ascending: true });
+
+    if (error || !clients || !clients.length){
+      sel.innerHTML = '<option value="">No approved clients yet</option>';
+      return;
+    }
+    sel.innerHTML = clients.map(c => `<option value="${c.id}">${c.full_name || c.email}</option>`).join('');
+    document.getElementById('bDate').value = new Date().toISOString().slice(0,10);
+    if (!document.getElementById('bExRows').children.length) addBExRow();
+    loadUpcomingWorkouts();
+    sel.onchange = loadUpcomingWorkouts;
+  }
+
+  async function saveWorkout(){
+    const clientId = document.getElementById('bClient').value;
+    const dayLabel = document.getElementById('bDayLabel').value.trim();
+    const date = document.getElementById('bDate').value;
+
+    if (!clientId){ toast('Pick a client first'); return; }
+    if (!dayLabel){ toast('Give this workout a day label'); return; }
+    if (!date){ toast('Pick a date'); return; }
+
+    const rows = Array.from(document.getElementById('bExRows').children);
+    const exercises = rows.map((r,i) => {
+      const get = f => r.querySelector(`[data-f="${f}"]`).value.trim();
+      return {
+        name: get('name'), pattern: get('pattern'),
+        sets: parseInt(get('sets')) || 1, reps: get('reps') || '10',
+        rpe: get('rpe') || null, rest_seconds: parseInt(get('rest')) || null,
+        order_index: i
+      };
+    }).filter(e => e.name);
+
+    if (!exercises.length){ toast('Add at least one exercise with a name'); return; }
+
+    const { data: workout, error: wErr } = await supabaseClient
+      .from('workouts').insert({ client_id: clientId, day_label: dayLabel, scheduled_date: date })
+      .select().single();
+
+    if (wErr || !workout){ toast('Something went wrong saving the workout'); return; }
+
+    const exRows = exercises.map(e => ({ ...e, workout_id: workout.id }));
+    const { error: exErr } = await supabaseClient.from('workout_exercises').insert(exRows);
+
+    if (exErr){ toast('Workout saved, but exercises failed to save'); return; }
+
+    toast('Workout assigned');
+    document.getElementById('bDayLabel').value = '';
+    document.getElementById('bExRows').innerHTML = '';
+    addBExRow();
+    loadUpcomingWorkouts();
+  }
+
+  async function loadUpcomingWorkouts(){
+    const clientId = document.getElementById('bClient').value;
+    const list = document.getElementById('bUpcoming');
+    if (!clientId){ list.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:12.5px;">Pick a client above to see their assigned workouts.</div>'; return; }
+
+    const today = new Date().toISOString().slice(0,10);
+    const { data: workouts, error } = await supabaseClient
+      .from('workouts').select('*, workout_exercises(id)').eq('client_id', clientId)
+      .gte('scheduled_date', today).order('scheduled_date', { ascending: true });
+
+    if (error || !workouts || !workouts.length){
+      list.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:12.5px;">No upcoming workouts assigned yet.</div>';
+      return;
+    }
+    list.innerHTML = workouts.map(w => {
+      const dateLabel = new Date(w.scheduled_date + 'T00:00:00').toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric' });
+      const exCount = (w.workout_exercises || []).length;
+      return `<div class="q-row" style="cursor:default;">
+        <div class="q-info"><div class="q-name">${w.day_label}</div><div class="q-detail">${dateLabel} \u00b7 ${exCount} exercise${exCount===1?'':'s'}</div></div>
+        <button class="q-status st-red" style="border:none;cursor:pointer;font:inherit;" onclick="deleteWorkout('${w.id}')">Delete</button>
+      </div>`;
+    }).join('');
+  }
+
+  async function deleteWorkout(id){
+    await supabaseClient.from('workouts').delete().eq('id', id);
+    toast('Workout removed');
+    loadUpcomingWorkouts();
+  }
+
   async function loadHomeStats(){
     document.getElementById('homeDateSub').textContent =
       new Date().toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' }) + ' \u00b7 here\u2019s where your people are today.';
@@ -1495,12 +1572,14 @@ Coaching reminders:
     document.getElementById('cdReflections').innerHTML = '<div style="padding:10px 0;color:var(--muted);font-size:12.5px;">Loading...</div>';
     document.getElementById('cdGoals').innerHTML = '<div style="padding:10px 0;color:var(--muted);font-size:12.5px;">Loading...</div>';
     document.getElementById('cdHabits').innerHTML = '<div style="padding:10px 0;color:var(--muted);font-size:12.5px;">Loading...</div>';
+    document.getElementById('cdWorkouts').innerHTML = '<div style="padding:10px 0;color:var(--muted);font-size:12.5px;">Loading...</div>';
 
-    const [{ data: profile }, { data: reflections }, { data: goals }, { data: habits }] = await Promise.all([
+    const [{ data: profile }, { data: reflections }, { data: goals }, { data: habits }, { data: workouts }] = await Promise.all([
       supabaseClient.from('profiles').select('full_name, email, created_at').eq('id', clientId).single(),
       supabaseClient.from('checkins').select('*').eq('client_id', clientId).order('week_start', { ascending: false }).limit(5),
       supabaseClient.from('goals').select('*').eq('client_id', clientId).order('created_at', { ascending: true }),
-      supabaseClient.from('habits').select('*').eq('client_id', clientId).eq('archived', false)
+      supabaseClient.from('habits').select('*').eq('client_id', clientId).eq('archived', false),
+      supabaseClient.from('workouts').select('*, workout_exercises(id)').eq('client_id', clientId).gte('scheduled_date', new Date().toISOString().slice(0,10)).order('scheduled_date', { ascending: true })
     ]);
 
     if (!profile){ document.getElementById('cdName').textContent = 'Client not found'; return; }
@@ -1531,6 +1610,15 @@ Coaching reminders:
       ? habits.map(h => `<div class="ht-panel-row"><div class="ht-emoji" style="background:#efe9f2;">${h.emoji || '\u{1F331}'}</div><div class="ht-info"><div class="ht-name">${h.name}</div><div class="ht-sub">${h.frequency}</div></div><div class="ht-streak">${h.streak}<svg width="11" height="11" viewBox="0 0 20 20" fill="currentColor" style="vertical-align:-1px"><path d="M10 2c1 2.4-1.6 3.4-1.6 6a1.6 1.6 0 0 0 3.2 0c0-.6-.2-1-.5-1.4 2 .9 3.9 3 3.9 5.6a5 5 0 0 1-10 0c0-3.4 2.5-5.2 5-10.2z"/></svg></div></div>`).join('')
       : '<div style="padding:10px 0;color:var(--muted);font-size:12.5px;">No habits assigned yet.</div>';
     document.getElementById('cdHabits').innerHTML = habitsHtml;
+
+    const workoutsHtml = (workouts && workouts.length)
+      ? workouts.map(w => {
+          const dateLabel = new Date(w.scheduled_date + 'T00:00:00').toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric' });
+          const exCount = (w.workout_exercises || []).length;
+          return `<div class="assign-item"><span class="assign-dot"></span><span class="assign-day">${dateLabel} \u00b7 ${w.day_label} (${exCount} ex)</span></div>`;
+        }).join('')
+      : '<div style="padding:10px 0;color:var(--muted);font-size:12.5px;">No upcoming workouts assigned.</div>';
+    document.getElementById('cdWorkouts').innerHTML = workoutsHtml;
   }
   function segPick(el){el.parentNode.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('on'));el.classList.add('on');}
   function postAnn(){
