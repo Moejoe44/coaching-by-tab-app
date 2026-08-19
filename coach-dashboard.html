@@ -514,6 +514,7 @@
     refreshPendingBadge();
     loadHomeQueuePreview();
     loadQueue();
+    loadHomeStats();
   })();
 
   async function logOut(){
@@ -602,13 +603,13 @@
     <div class="page on" id="home">
       <div class="page-head">
         <div class="page-title">Good morning, <em>Tab</em></div>
-        <div class="page-sub">Sunday, July 12 &middot; here's where your people are today.</div>
+        <div class="page-sub" id="homeDateSub"></div>
       </div>
       <div class="stat-grid">
-        <div class="statc"><div class="statc-label">Active clients</div><div class="statc-num">14</div><div class="statc-sub">2 onboarding this week</div></div>
-        <div class="statc"><div class="statc-label">Need you today</div><div class="statc-num red">3</div><div class="statc-sub">Flagged from check-ins</div></div>
-        <div class="statc"><div class="statc-label">Check-ins in</div><div class="statc-num green">9<span style="font-size:16px;color:var(--muted)">/14</span></div><div class="statc-sub">This week's reflections</div></div>
-        <div class="statc"><div class="statc-label">Calls booked</div><div class="statc-num">4</div><div class="statc-sub">Next: Kia, Thu 2pm</div></div>
+        <div class="statc"><div class="statc-label">Active clients</div><div class="statc-num" id="statActive">&mdash;</div><div class="statc-sub">Approved &amp; onboarded</div></div>
+        <div class="statc"><div class="statc-label">Need you today</div><div class="statc-num red" id="statNeedYou">&mdash;</div><div class="statc-sub">Flagged from check-ins</div></div>
+        <div class="statc"><div class="statc-label">Check-ins in</div><div class="statc-num green" id="statCheckins">&mdash;</div><div class="statc-sub">This week's reflections</div></div>
+        <div class="statc"><div class="statc-label">Pending sign-ups</div><div class="statc-num" id="statPending">&mdash;</div><div class="statc-sub">Waiting on your review</div></div>
       </div>
 
       <div class="sec-label">Who needs you today <button class="link-btn" onclick="go('queue')">See full queue &rarr;</button></div>
@@ -618,16 +619,13 @@
 
       <div class="two-col" style="margin-top:24px;">
         <div class="panel">
-          <div class="panel-h">Today's schedule</div>
-          <div class="sched-item"><div class="sched-time">2:00p</div><div class="sched-what"><div class="sched-title">Progress check-in call</div><div class="sched-with">with Kia Stickney &middot; end of block</div></div><span class="sched-type">Call</span></div>
-          <div class="sched-item"><div class="sched-time">4:30p</div><div class="sched-what"><div class="sched-title">In-person session</div><div class="sched-with">Planet Fitness &middot; Catonsville</div></div><span class="sched-type">Train</span></div>
-          <div class="sched-item"><div class="sched-time">6:00p</div><div class="sched-what"><div class="sched-title">New client onboarding</div><div class="sched-with">Assessment review &middot; Jordan</div></div><span class="sched-type">Onboard</span></div>
+          <div class="panel-h">Newest sign-ups <span style="font-size:11px;color:var(--muted);font-weight:400">(scheduling isn't built yet)</span></div>
+          <div id="homeSignupsPreview"><div style="padding:10px 0;color:var(--muted);font-size:12.5px;">Loading...</div></div>
         </div>
         <div class="panel">
           <div class="panel-h">This week at a glance</div>
-          <div class="sched-item"><div class="sched-what"><div class="sched-title">Check-in completion</div><div class="sched-with">9 of 14 in &middot; 5 still pending</div></div><span style="font-family:'Fraunces';font-size:20px;font-weight:600;color:var(--plum)">64%</span></div>
-          <div class="sched-item"><div class="sched-what"><div class="sched-title">Workouts logged</div><div class="sched-with">38 sessions across all clients</div></div><span style="font-family:'Fraunces';font-size:20px;font-weight:600;color:var(--green)">+12%</span></div>
-          <div class="sched-item"><div class="sched-what"><div class="sched-title">New leads (quiz)</div><div class="sched-with">From the readiness quiz funnel</div></div><span style="font-family:'Fraunces';font-size:20px;font-weight:600;color:var(--plum)">6</span></div>
+          <div class="sched-item"><div class="sched-what"><div class="sched-title">Check-in completion</div><div class="sched-with" id="statCheckinsSub">&mdash;</div></div><span style="font-family:'Fraunces';font-size:20px;font-weight:600;color:var(--plum)" id="statCheckinsPct">&mdash;</span></div>
+          <div style="padding:12px 0 4px;font-size:11.5px;color:var(--muted);line-height:1.6;">Workout logging and lead tracking aren't built yet, so there's nothing real to show here for those.</div>
         </div>
       </div>
     </div>
@@ -1355,6 +1353,7 @@ Coaching reminders:
     if(id==='pending')loadPending();
     if(id==='roster')loadRoster();
     if(id==='queue')loadQueue();
+    if(id==='home'){loadHomeStats();loadHomeQueuePreview();}
     document.querySelector('.main').scrollTop=0;
   }
   // ── Real check-in queue ──
@@ -1421,6 +1420,47 @@ Coaching reminders:
     const el = document.getElementById('homeQueuePreview');
     if (el) el.innerHTML = rows || '<div style="padding:20px;color:var(--muted);font-size:12.5px;">No clients yet.</div>';
   }
+
+  // ── Real home dashboard stats ──
+  async function loadHomeStats(){
+    document.getElementById('homeDateSub').textContent =
+      new Date().toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' }) + ' \u00b7 here\u2019s where your people are today.';
+
+    const thisWeek = getMonday(new Date());
+    const { data: clients } = await supabaseClient
+      .from('profiles').select('id').eq('role','client').eq('status','approved');
+    const total = (clients || []).length;
+    document.getElementById('statActive').textContent = total;
+
+    const { count: checkedInCount } = await supabaseClient
+      .from('checkins').select('id', { count:'exact', head:true }).eq('week_start', thisWeek);
+    document.getElementById('statCheckins').innerHTML = (checkedInCount||0) + '<span style="font-size:16px;color:var(--muted)">/'+total+'</span>';
+    const pct = total ? Math.round(((checkedInCount||0)/total)*100) : 0;
+    document.getElementById('statCheckinsPct').textContent = pct + '%';
+    document.getElementById('statCheckinsSub').textContent = (checkedInCount||0)+' of '+total+' in \u00b7 '+(total-(checkedInCount||0))+' still pending';
+
+    const { count: pendingCount } = await supabaseClient
+      .from('profiles').select('id', { count:'exact', head:true }).eq('role','client').eq('status','pending');
+    document.getElementById('statPending').textContent = pendingCount || 0;
+
+    const { redCount } = await buildQueueRows();
+    document.getElementById('statNeedYou').textContent = redCount;
+
+    const { data: pendingRows } = await supabaseClient
+      .from('profiles').select('id, full_name, email, created_at').eq('role','client').eq('status','pending')
+      .order('created_at', { ascending:false }).limit(3);
+    const sPrev = document.getElementById('homeSignupsPreview');
+    if (!pendingRows || !pendingRows.length){
+      sPrev.innerHTML = '<div style="padding:10px 0;color:var(--muted);font-size:12.5px;">No pending sign-ups right now.</div>';
+    } else {
+      sPrev.innerHTML = pendingRows.map(r => {
+        const name = r.full_name || '(no name given)';
+        const when = new Date(r.created_at).toLocaleDateString();
+        return `<div class="sched-item"><div class="sched-what"><div class="sched-title">${name}</div><div class="sched-with">${r.email} \u00b7 ${when}</div></div><button class="link-btn" onclick="go('pending')">Review &rarr;</button></div>`;
+      }).join('');
+    }
+  }
+
   async function loadRoster(){
     const grid = document.getElementById('rosterGrid');
     const sub = document.getElementById('rosterSub');
