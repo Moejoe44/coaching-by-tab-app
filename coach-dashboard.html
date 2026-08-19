@@ -510,12 +510,64 @@
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) { window.location.href = 'signin.html'; return; }
     const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', session.user.id).single();
-    if (!profile || profile.role !== 'coach') { window.location.href = 'signin.html'; }
+    if (!profile || profile.role !== 'coach') { window.location.href = 'signin.html'; return; }
+    refreshPendingBadge();
   })();
 
   async function logOut(){
     await supabaseClient.auth.signOut();
     window.location.href = 'landing.html';
+  }
+
+  // ── Pending sign-up approvals ──
+  async function refreshPendingBadge(){
+    const { count } = await supabaseClient
+      .from('profiles').select('id', { count: 'exact', head: true })
+      .eq('role', 'client').eq('status', 'pending');
+    const badge = document.getElementById('pendingCount');
+    if (count && count > 0){
+      badge.textContent = count;
+      badge.style.display = 'inline-block';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  async function loadPending(){
+    const list = document.getElementById('pendingList');
+    const { data: rows, error } = await supabaseClient
+      .from('profiles').select('id, full_name, email, created_at')
+      .eq('role', 'client').eq('status', 'pending').order('created_at', { ascending: true });
+
+    if (error){
+      list.innerHTML = '<div style="padding:20px;color:#b0574f;font-size:12.5px;">Couldn\u2019t load pending sign-ups.</div>';
+      return;
+    }
+    if (!rows.length){
+      list.innerHTML = '<div style="padding:20px;color:#8a7a90;font-size:12.5px;">No pending sign-ups right now.</div>';
+      return;
+    }
+    list.innerHTML = rows.map(r => {
+      const name = r.full_name || '(no name given)';
+      const initial = (r.full_name || r.email || '?').charAt(0).toUpperCase();
+      const when = new Date(r.created_at).toLocaleDateString();
+      return `<div class="q-row" id="pend-${r.id}" style="cursor:default;">
+        <div class="q-ava">${initial}</div>
+        <div class="q-info"><div class="q-name">${name}</div><div class="q-detail">${r.email} &middot; signed up ${when}</div></div>
+        <button class="q-status st-red" style="cursor:pointer;border:none;font:inherit;" onclick="decidePending('${r.id}','declined')">Decline</button>
+        <button class="q-status" style="cursor:pointer;border:none;font:inherit;background:var(--green-bg,#eef4ef);color:var(--green,#5f8f6b);margin-left:8px;" onclick="decidePending('${r.id}','approved')">Approve</button>
+      </div>`;
+    }).join('');
+  }
+
+  async function decidePending(id, decision){
+    const { error } = await supabaseClient.from('profiles').update({ status: decision }).eq('id', id);
+    if (error){ toast('Something went wrong, try again.'); return; }
+    document.getElementById('pend-'+id).remove();
+    toast(decision === 'approved' ? 'Client approved' : 'Sign-up declined');
+    refreshPendingBadge();
+    const remaining = document.getElementById('pendingList').children.length;
+    if (!remaining) document.getElementById('pendingList').innerHTML = '<div style="padding:20px;color:#8a7a90;font-size:12.5px;">No pending sign-ups right now.</div>';
   }
 </script>
 <div class="app">
@@ -525,6 +577,7 @@
     <div class="sb-tag">Coach Dashboard</div>
     <div class="sb-nav">
       <button class="sb-item on" id="nav-home" onclick="go('home')"><span class="sb-ico">&#9632;</span><span>Dashboard</span></button>
+      <button class="sb-item" id="nav-pending" onclick="go('pending')"><span class="sb-ico">&#10068;</span><span>Pending sign-ups</span><span class="sb-count" id="pendingCount" style="display:none;">0</span></button>
       <button class="sb-item" id="nav-queue" onclick="go('queue')"><span class="sb-ico">&#9873;</span><span>Check-in queue</span><span class="sb-count">3</span></button>
       <button class="sb-item" id="nav-roster" onclick="go('roster')"><span class="sb-ico">&#9783;</span><span>Clients</span></button>
       <button class="sb-item" id="nav-builder" onclick="go('builder')"><span class="sb-ico">&#9998;</span><span>Workout builder</span></button>
@@ -601,6 +654,17 @@
           <div class="sched-item"><div class="sched-what"><div class="sched-title">Workouts logged</div><div class="sched-with">38 sessions across all clients</div></div><span style="font-family:'Fraunces';font-size:20px;font-weight:600;color:var(--green)">+12%</span></div>
           <div class="sched-item"><div class="sched-what"><div class="sched-title">New leads (quiz)</div><div class="sched-with">From the readiness quiz funnel</div></div><span style="font-family:'Fraunces';font-size:20px;font-weight:600;color:var(--plum)">6</span></div>
         </div>
+      </div>
+    </div>
+
+    <!-- PENDING SIGN-UPS -->
+    <div class="page" id="pending">
+      <div class="page-head">
+        <div class="page-title">Pending <em>sign-ups</em></div>
+        <div class="page-sub">New accounts waiting on your approval before they get dashboard access.</div>
+      </div>
+      <div class="queue-card" id="pendingList">
+        <div style="padding:20px;color:#8a7a90;font-size:12.5px;">Loading...</div>
       </div>
     </div>
 
@@ -1422,13 +1486,14 @@ Coaching reminders:
 <div class="demo-note">Coach dashboard prototype &middot; Tab's side. Sidebar switches views. Click any flagged client to open detail. Bellamy: the AI assist surfaces insights &amp; drafts (sidebar), and the floating sunflower button bottom-right lets you ask about any client. Sample data throughout.</div>
 
 <script>
-  const pages=['home','queue','roster','client','lens','announce','resources','desk','builder'];
-  const navMap={home:'nav-home',queue:'nav-queue',roster:'nav-roster',builder:'nav-builder',lens:'nav-lens',announce:'nav-announce',resources:'nav-resources',desk:'nav-desk'};
+  const pages=['home','pending','queue','roster','client','lens','announce','resources','desk','builder'];
+  const navMap={home:'nav-home',pending:'nav-pending',queue:'nav-queue',roster:'nav-roster',builder:'nav-builder',lens:'nav-lens',announce:'nav-announce',resources:'nav-resources',desk:'nav-desk'};
   function go(id){
     pages.forEach(p=>document.getElementById(p).classList.toggle('on',p===id));
     Object.values(navMap).forEach(n=>document.getElementById(n).classList.remove('on'));
     if(navMap[id])document.getElementById(navMap[id]).classList.add('on');
     if(id==='desk')renderCal();
+    if(id==='pending')loadPending();
     document.querySelector('.main').scrollTop=0;
   }
   const clientData={
