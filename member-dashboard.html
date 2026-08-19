@@ -358,7 +358,8 @@
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) { window.location.href = 'signin.html'; return; }
     const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', session.user.id).single();
-    if (!profile || profile.role !== 'client') { window.location.href = 'signin.html'; }
+    if (!profile || profile.role !== 'client') { window.location.href = 'signin.html'; return; }
+    loadHabits();
   })();
 
   async function logOut(){
@@ -500,10 +501,8 @@
         <div class="tool-tile"><div class="tool-ico soft">&#10003;</div><div class="tool-body"><div class="tool-title">Tasks</div><div class="tool-sub">Nothing due today, you're clear.</div></div><div class="tool-arrow">&rsaquo;</div></div>
       </div>
       <div class="sec-label">Habits <span class="view-all" onclick="alert('Opens all habits')">View all</span></div>
-      <div class="card">
-        <div class="habit"><div class="habit-emoji" style="background:#fdf0e0;"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#5a4a60" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15c-1-6 3-11 11-11 1 6-3 11-11 11z"/><path d="M4 15c2-4 5-6.5 9-8"/></svg></div><div class="habit-info"><div class="habit-name">Sunday prep</div><div class="habit-freq">1 time a week</div></div><div class="habit-check" onclick="toggleHabit(this)"></div></div>
-        <div class="habit"><div class="habit-emoji" style="background:#fdf6e0;"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#8a6a2e" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2.5v6.2M4.3 2.5v4.4a1.7 1.7 0 0 0 3.4 0V2.5"/><path d="M6 8.7V17.5"/><path d="M14.5 2.5c-1.5 0-2.4 1.7-2.4 4.2 0 1.7.8 2.7 1.7 3v7.8"/></svg></div><div class="habit-info"><div class="habit-name">Log meals</div><div class="habit-freq">3 times a day</div></div><div class="habit-check on" onclick="toggleHabit(this)">&#10003;</div></div>
-        <div class="habit"><div class="habit-emoji" style="background:#e8e4ef;"><svg width="18" height="18" viewBox="0 0 20 20" fill="#5a4a60" stroke="none"><path d="M13.5 2.5a8 8 0 1 0 4 12.9A6.5 6.5 0 0 1 13.5 2.5z"/></svg></div><div class="habit-info"><div class="habit-name">Night prep for tomorrow</div><div class="habit-freq">1 time a day</div></div><div class="habit-check" onclick="toggleHabit(this)"></div></div>
+      <div class="card" id="habitsCard">
+        <div style="padding:10px 0;color:#8a7a90;font-size:12.5px;">Loading habits...</div>
       </div>
     </div>
 
@@ -714,7 +713,65 @@
       document.getElementById('st-'+t).classList.toggle('on',t===tab);
     });
   }
-  function toggleHabit(el){const on=el.classList.toggle('on');el.textContent=on?'\u2713':'';}
+  // ── Real habit data (loaded from Supabase) ──
+  const todayStr = new Date().toISOString().slice(0,10);
+
+  function renderHabits(habits, completedIds){
+    const card = document.getElementById('habitsCard');
+    if (!habits.length){
+      card.innerHTML = '<div style="padding:10px 0;color:#8a7a90;font-size:12.5px;">No habits assigned yet. Tab will add these during your next check-in.</div>';
+      return;
+    }
+    card.innerHTML = habits.map(h => {
+      const on = completedIds.has(h.id);
+      return `<div class="habit">
+        <div class="habit-emoji" style="background:#efe9f2;">${h.emoji || '\u{1F331}'}</div>
+        <div class="habit-info"><div class="habit-name">${h.name}</div><div class="habit-freq">${h.frequency}</div></div>
+        <div class="habit-check ${on ? 'on' : ''}" data-habit-id="${h.id}" onclick="toggleHabit(this)">${on ? '\u2713' : ''}</div>
+      </div>`;
+    }).join('');
+  }
+
+  async function loadHabits(){
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) return;
+
+    const { data: habits, error: hErr } = await supabaseClient
+      .from('habits').select('*').eq('client_id', session.user.id).eq('archived', false);
+    const { data: completions, error: cErr } = await supabaseClient
+      .from('habit_completions').select('habit_id').eq('client_id', session.user.id).eq('completed_date', todayStr);
+
+    if (hErr || cErr){
+      document.getElementById('habitsCard').innerHTML = '<div style="padding:10px 0;color:#b0574f;font-size:12.5px;">Couldn\u2019t load habits right now.</div>';
+      return;
+    }
+    renderHabits(habits || [], new Set((completions || []).map(c => c.habit_id)));
+  }
+
+  async function toggleHabit(el){
+    const habitId = el.getAttribute('data-habit-id');
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session || !habitId) return;
+
+    const turningOn = !el.classList.contains('on');
+    el.classList.toggle('on');
+    el.textContent = turningOn ? '\u2713' : '';
+
+    if (turningOn){
+      const { error } = await supabaseClient.from('habit_completions').insert({
+        habit_id: habitId, client_id: session.user.id, completed_date: todayStr
+      });
+      if (!error){
+        const { data: h } = await supabaseClient.from('habits').select('streak').eq('id', habitId).single();
+        if (h) await supabaseClient.from('habits').update({ streak: h.streak + 1 }).eq('id', habitId);
+      }
+    } else {
+      await supabaseClient.from('habit_completions').delete()
+        .eq('habit_id', habitId).eq('client_id', session.user.id).eq('completed_date', todayStr);
+      const { data: h } = await supabaseClient.from('habits').select('streak').eq('id', habitId).single();
+      if (h && h.streak > 0) await supabaseClient.from('habits').update({ streak: h.streak - 1 }).eq('id', habitId);
+    }
+  }
   function bookCall(){
     const b=document.getElementById('bookBtn');
     if(b.classList.contains('booked')){b.classList.remove('booked');b.textContent='Book call';return;}
