@@ -389,6 +389,7 @@
 
     loadHabits();
     loadGoals();
+    loadCheckinStatus();
   })();
 
   async function logOut(){
@@ -595,8 +596,7 @@
       <div id="tab-history" style="display:none;">
         <div class="screen-h">Your reflections</div>
         <div class="screen-p">Every week you've thought it through. This is the trail of your own work.</div>
-        <div class="refl-hist"><div class="rh-top"><span class="rh-week">Week 2</span><span class="rh-flag flag-green"></span></div><div class="rh-goal">Met &middot; 4 workouts completed</div><div class="rh-note">"Prepping my bag the night before is the whole game. When it's packed, I don't argue with myself."</div></div>
-        <div class="refl-hist"><div class="rh-top"><span class="rh-week">Week 1</span><span class="rh-flag flag-amber"></span></div><div class="rh-goal">Not met &middot; steps fell short</div><div class="rh-note">"Barrier: work ran late 3 nights. Small step: 10-min walk at lunch instead of waiting for evening."</div></div>
+        <div id="historyList"><div style="padding:10px 0;color:#8a7a90;font-size:12.5px;">Loading...</div></div>
       </div>
       <div id="tab-journal" style="display:none;">
         <div class="screen-h">Journal</div>
@@ -739,6 +739,33 @@
       document.getElementById('tab-'+t).style.display=(t===tab)?'block':'none';
       document.getElementById('st-'+t).classList.toggle('on',t===tab);
     });
+    if (tab === 'history') loadCheckinHistory();
+  }
+
+  async function loadCheckinHistory(){
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    const list = document.getElementById('historyList');
+    if (!session) return;
+
+    const { data: rows, error } = await supabaseClient
+      .from('checkins').select('*').eq('client_id', session.user.id)
+      .order('week_start', { ascending: false });
+
+    if (error || !rows || !rows.length){
+      list.innerHTML = '<div style="padding:10px 0;color:#8a7a90;font-size:12.5px;">No reflections submitted yet. Your first one will show up here.</div>';
+      return;
+    }
+    list.innerHTML = rows.map(r => {
+      const flag = r.met_goal ? 'flag-green' : 'flag-amber';
+      const goalLine = r.met_goal ? 'Goal met' : 'Goal not met';
+      const note = r.wins || r.struggles || '';
+      const weekLabel = new Date(r.week_start + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      return `<div class="refl-hist">
+        <div class="rh-top"><span class="rh-week">Week of ${weekLabel}</span><span class="rh-flag ${flag}"></span></div>
+        <div class="rh-goal">${goalLine}</div>
+        ${note ? `<div class="rh-note">"${note}"</div>` : ''}
+      </div>`;
+    }).join('');
   }
   // ── Real habit data (loaded from Supabase) ──
   const todayStr = new Date().toISOString().slice(0,10);
@@ -900,7 +927,9 @@
     if(y)y.classList.remove('sel-yes');if(n)n.classList.remove('sel-no');
     const ra=document.getElementById('reflectArea');if(ra)ra.innerHTML='';
   }
+  let ciMetGoal = null;
   function setMet(met){
+    ciMetGoal = met;
     document.getElementById('metYes').classList.toggle('sel-yes',met);
     document.getElementById('metNo').classList.toggle('sel-no',!met);
     const area=document.getElementById('reflectArea');
@@ -922,7 +951,32 @@
     }else{step.innerHTML='';}
   }
   function checkSubmit(taId,btnId){document.getElementById(btnId).disabled=document.getElementById(taId).value.trim().length<2;}
-  function finishCheckin(){
+  function getMonday(d){
+    const date = new Date(d);
+    const day = date.getDay();
+    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(date.setDate(diff));
+    return monday.toISOString().slice(0,10);
+  }
+
+  async function finishCheckin(){
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (session){
+      const weekStart = getMonday(new Date());
+      const payload = {
+        client_id: session.user.id,
+        week_start: weekStart,
+        met_goal: ciMetGoal
+      };
+      if (ciMetGoal){
+        payload.wins = document.getElementById('rMet') ? document.getElementById('rMet').value.trim() : null;
+      } else {
+        payload.struggles = document.getElementById('rBarrier') ? document.getElementById('rBarrier').value.trim() : null;
+        payload.next_step = document.getElementById('rStep') ? document.getElementById('rStep').value.trim() : null;
+      }
+      await supabaseClient.from('checkins').upsert(payload, { onConflict: 'client_id,week_start' });
+      updateCiSlotStatus('done');
+    }
     document.getElementById('checkinFlow').innerHTML='<div class="done-state"><div class="done-ico">\u2713</div><div class="done-h">That\'s the work.</div><div class="done-p">Your reflection is saved. Tab sees it on her side, and because you took the time to think it through, you\'re in the green this week.</div><button class="submit-btn" style="max-width:220px;margin:0 auto;" onclick="go(\'home\')">Back home</button></div>';
   }
   /* ── ONBOARDING CHECKLIST ── */
@@ -978,6 +1032,16 @@
     const tab=document.getElementById('nav-checkin');
     if(state==='none'||state==='done'){tab.style.opacity='0.45';}
     else{tab.style.opacity='1';}
+  }
+  function updateCiSlotStatus(state){ setCiState(state); }
+
+  async function loadCheckinStatus(){
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) return;
+    const weekStart = getMonday(new Date());
+    const { data } = await supabaseClient
+      .from('checkins').select('id').eq('client_id', session.user.id).eq('week_start', weekStart).maybeSingle();
+    setCiState(data ? 'done' : 'due');
   }
   function escapeHtml(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 
