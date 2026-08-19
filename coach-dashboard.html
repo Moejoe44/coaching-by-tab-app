@@ -512,6 +512,8 @@
     const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', session.user.id).single();
     if (!profile || profile.role !== 'coach') { window.location.href = 'signin.html'; return; }
     refreshPendingBadge();
+    loadHomeQueuePreview();
+    loadQueue();
   })();
 
   async function logOut(){
@@ -610,35 +612,8 @@
       </div>
 
       <div class="sec-label">Who needs you today <button class="link-btn" onclick="go('queue')">See full queue &rarr;</button></div>
-      <div class="queue-card">
-        <div class="q-row" onclick="openClient('Marisa')">
-          <div class="q-flag flag-red"></div>
-          <div class="q-ava">M</div>
-          <div class="q-info"><div class="q-name">Marisa Chen</div><div class="q-detail">Goal not met &middot; skipped reflection</div></div>
-          <div class="q-status st-red">Red</div>
-          <div class="q-time">2 days ago</div>
-        </div>
-        <div class="q-row" onclick="openClient('Danielle')">
-          <div class="q-flag flag-red"></div>
-          <div class="q-ava">D</div>
-          <div class="q-info"><div class="q-name">Danielle Ross</div><div class="q-detail">Goal not met &middot; skipped reflection</div></div>
-          <div class="q-status st-red">Red</div>
-          <div class="q-time">1 day ago</div>
-        </div>
-        <div class="q-row" onclick="openClient('Priya')">
-          <div class="q-flag flag-red"></div>
-          <div class="q-ava">P</div>
-          <div class="q-info"><div class="q-name">Priya Nair</div><div class="q-detail">No activity logged in 5 days</div></div>
-          <div class="q-status st-red">Red</div>
-          <div class="q-time">5 days ago</div>
-        </div>
-        <div class="q-row" onclick="openClient('Kia')">
-          <div class="q-flag flag-amber"></div>
-          <div class="q-ava">K</div>
-          <div class="q-info"><div class="q-name">Kia Stickney</div><div class="q-detail">Goal not met &middot; reflected &amp; committed</div></div>
-          <div class="q-status st-amber">Yellow</div>
-          <div class="q-time">Today</div>
-        </div>
+      <div class="queue-card" id="homeQueuePreview">
+        <div style="padding:20px;color:#8a7a90;font-size:12.5px;">Loading...</div>
       </div>
 
       <div class="two-col" style="margin-top:24px;">
@@ -672,16 +647,10 @@
     <div class="page" id="queue">
       <div class="page-head">
         <div class="page-title">Check-in <em>queue</em></div>
-        <div class="page-sub">Sorted by who needs you most. Red = didn't meet the goal and didn't reflect.</div>
+        <div class="page-sub">Sorted by who needs you most. Red = no check-in submitted this week.</div>
       </div>
-      <div class="queue-card">
-        <div class="q-row" onclick="openClient('Marisa')"><div class="q-flag flag-red"></div><div class="q-ava">M</div><div class="q-info"><div class="q-name">Marisa Chen</div><div class="q-detail">Steps goal not met &middot; no reflection submitted</div></div><div class="q-status st-red">Red</div><div class="q-time">2 days ago</div></div>
-        <div class="q-row" onclick="openClient('Danielle')"><div class="q-flag flag-red"></div><div class="q-ava">D</div><div class="q-info"><div class="q-name">Danielle Ross</div><div class="q-detail">Workout goal not met &middot; no reflection submitted</div></div><div class="q-status st-red">Red</div><div class="q-time">1 day ago</div></div>
-        <div class="q-row" onclick="openClient('Priya')"><div class="q-flag flag-red"></div><div class="q-ava">P</div><div class="q-info"><div class="q-name">Priya Nair</div><div class="q-detail">No activity logged in 5 days</div></div><div class="q-status st-red">Red</div><div class="q-time">5 days ago</div></div>
-        <div class="q-row" onclick="openClient('Kia')"><div class="q-flag flag-amber"></div><div class="q-ava">K</div><div class="q-info"><div class="q-name">Kia Stickney</div><div class="q-detail">Steps goal not met &middot; reflected: "work ran late 3 nights"</div></div><div class="q-status st-amber">Yellow</div><div class="q-time">Today</div></div>
-        <div class="q-row" onclick="openClient('Rochelle')"><div class="q-flag flag-amber"></div><div class="q-ava">R</div><div class="q-info"><div class="q-name">Rochelle Diaz</div><div class="q-detail">Nutrition goal not met &middot; reflected &amp; committed</div></div><div class="q-status st-amber">Yellow</div><div class="q-time">Today</div></div>
-        <div class="q-row" onclick="openClient('Amara')"><div class="q-flag flag-green"></div><div class="q-ava">A</div><div class="q-info"><div class="q-name">Amara Okafor</div><div class="q-detail">Goal met &middot; strong week</div></div><div class="q-status st-green">Green</div><div class="q-time">Today</div></div>
-        <div class="q-row" onclick="openClient('Simone')"><div class="q-flag flag-green"></div><div class="q-ava">S</div><div class="q-info"><div class="q-name">Simone Bell</div><div class="q-detail">Goal met &middot; 4/4 workouts</div></div><div class="q-status st-green">Green</div><div class="q-time">Yesterday</div></div>
+      <div class="queue-card" id="queueList">
+        <div style="padding:20px;color:#8a7a90;font-size:12.5px;">Loading...</div>
       </div>
     </div>
 
@@ -1385,9 +1354,73 @@ Coaching reminders:
     if(id==='desk')renderCal();
     if(id==='pending')loadPending();
     if(id==='roster')loadRoster();
+    if(id==='queue')loadQueue();
     document.querySelector('.main').scrollTop=0;
   }
-  // ── Real roster ──
+  // ── Real check-in queue ──
+  function getMonday(d){
+    const date = new Date(d);
+    const day = date.getDay();
+    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+    return new Date(date.setDate(diff)).toISOString().slice(0,10);
+  }
+
+  async function buildQueueRows(){
+    const thisWeek = getMonday(new Date());
+    const { data: clients } = await supabaseClient
+      .from('profiles').select('id, full_name, email')
+      .eq('role', 'client').eq('status', 'approved');
+
+    if (!clients || !clients.length) return { rows: '', redCount: 0 };
+
+    const rows = await Promise.all(clients.map(async (c) => {
+      const { data: latest } = await supabaseClient
+        .from('checkins').select('*').eq('client_id', c.id)
+        .order('week_start', { ascending: false }).limit(1).maybeSingle();
+
+      const name = c.full_name || c.email;
+      const initial = (c.full_name || c.email || '?').charAt(0).toUpperCase();
+      let flagClass, statusClass, statusLabel, detail, time;
+
+      if (!latest){
+        flagClass='flag-red'; statusClass='st-red'; statusLabel='Red';
+        detail='No check-in submitted yet'; time='';
+      } else if (latest.week_start !== thisWeek){
+        flagClass='flag-red'; statusClass='st-red'; statusLabel='Red';
+        detail='No reflection submitted this week'; time='Last: ' + latest.week_start;
+      } else if (latest.met_goal){
+        flagClass='flag-green'; statusClass='st-green'; statusLabel='Green';
+        detail='Goal met' + (latest.wins ? (' \u00b7 "'+latest.wins+'"') : '');
+        time='This week';
+      } else {
+        flagClass='flag-amber'; statusClass='st-amber'; statusLabel='Yellow';
+        detail='Goal not met' + (latest.struggles ? (' \u00b7 "'+latest.struggles+'"') : '');
+        time='This week';
+      }
+
+      return {
+        sortKey: statusLabel === 'Red' ? 0 : statusLabel === 'Yellow' ? 1 : 2,
+        html: `<div class="q-row" onclick="openClient('${c.id}')"><div class="q-flag ${flagClass}"></div><div class="q-ava">${initial}</div><div class="q-info"><div class="q-name">${name}</div><div class="q-detail">${detail}</div></div><div class="q-status ${statusClass}">${statusLabel}</div><div class="q-time">${time}</div></div>`
+      };
+    }));
+
+    rows.sort((a,b) => a.sortKey - b.sortKey);
+    const redCount = rows.filter(r => r.sortKey === 0).length;
+    return { rows: rows.map(r => r.html).join(''), redCount };
+  }
+
+  async function loadQueue(){
+    const { rows, redCount } = await buildQueueRows();
+    document.getElementById('queueList').innerHTML = rows || '<div style="padding:20px;color:var(--muted);font-size:12.5px;">No clients yet.</div>';
+    const badge = document.getElementById('nav-queue').querySelector('.sb-count');
+    if (badge) badge.textContent = redCount;
+  }
+
+  async function loadHomeQueuePreview(){
+    const { rows } = await buildQueueRows();
+    const el = document.getElementById('homeQueuePreview');
+    if (el) el.innerHTML = rows || '<div style="padding:20px;color:var(--muted);font-size:12.5px;">No clients yet.</div>';
+  }
   async function loadRoster(){
     const grid = document.getElementById('rosterGrid');
     const sub = document.getElementById('rosterSub');
