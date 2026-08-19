@@ -388,6 +388,7 @@
     document.querySelector('.avatar').textContent = initial;
 
     loadHabits();
+    loadGoals();
   })();
 
   async function logOut(){
@@ -436,10 +437,8 @@
             <button class="wk-log-btn" onclick="go('log')">Start workout &rarr;</button>
           </div>
           <div class="sec-label">Your goals</div>
-          <div class="card">
-            <div class="goal"><div class="goal-check active"></div><div class="goal-text"><div class="goal-name">Train 4x a week, consistently</div><div class="goal-why">"Because I want to prove to myself I follow through."</div><div class="goal-tag">Identity&ndash;Action Alignment</div></div></div>
-            <div class="goal"><div class="goal-check active"></div><div class="goal-text"><div class="goal-name">Hit 9,000 steps most days</div><div class="goal-why">"Movement is how I clear my head."</div><div class="goal-tag">Change Readiness</div></div></div>
-            <div class="goal"><div class="goal-check done">&#10003;</div><div class="goal-text"><div class="goal-name">Stop negotiating with myself at 5am</div><div class="goal-why">"I decide the night before. No debate."</div><div class="goal-tag">Self-Authorship</div></div></div>
+          <div class="card" id="goalsCard">
+            <div style="padding:10px 0;color:#8a7a90;font-size:12.5px;">Loading goals...</div>
           </div>
         </div>
         <div class="home-side">
@@ -758,6 +757,54 @@
         <div class="habit-check ${on ? 'on' : ''}" data-habit-id="${h.id}" onclick="toggleHabit(this)">${on ? '\u2713' : ''}</div>
       </div>`;
     }).join('');
+  }
+
+  // ── Real goals data ──
+  function renderGoals(goals){
+    const card = document.getElementById('goalsCard');
+    if (!goals.length){
+      card.innerHTML = '<div style="padding:10px 0;color:#8a7a90;font-size:12.5px;">No goals set yet. These come from your onboarding conversation with Tab.</div>';
+      return;
+    }
+    card.innerHTML = goals.map(g => {
+      const done = g.status === 'done';
+      return `<div class="goal">
+        <div class="goal-check ${done ? 'done' : 'active'}" data-goal-id="${g.id}" onclick="toggleGoal(this)">${done ? '\u2713' : ''}</div>
+        <div class="goal-text">
+          <div class="goal-name">${g.name}</div>
+          ${g.why ? `<div class="goal-why">"${g.why}"</div>` : ''}
+          ${g.tag ? `<div class="goal-tag">${g.tag}</div>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  async function loadGoals(){
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) return;
+    const { data: goals, error } = await supabaseClient
+      .from('goals').select('*').eq('client_id', session.user.id).order('created_at', { ascending: true });
+
+    if (error){
+      document.getElementById('goalsCard').innerHTML = '<div style="padding:10px 0;color:#b0574f;font-size:12.5px;">Couldn\u2019t load goals right now.</div>';
+      return;
+    }
+    renderGoals(goals || []);
+  }
+
+  async function toggleGoal(el){
+    const goalId = el.getAttribute('data-goal-id');
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session || !goalId) return;
+
+    const turningDone = !el.classList.contains('done');
+    el.classList.toggle('done');
+    el.classList.toggle('active');
+    el.textContent = turningDone ? '\u2713' : '';
+
+    await supabaseClient.from('goals')
+      .update({ status: turningDone ? 'done' : 'active' })
+      .eq('id', goalId).eq('client_id', session.user.id);
   }
 
   async function loadHabits(){
