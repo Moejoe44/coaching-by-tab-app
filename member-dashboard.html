@@ -357,8 +357,21 @@
   (async () => {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) { window.location.href = 'signin.html'; return; }
-    const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', session.user.id).single();
+    const { data: profile } = await supabaseClient.from('profiles').select('role, full_name, email').eq('id', session.user.id).single();
     if (!profile || profile.role !== 'client') { window.location.href = 'signin.html'; return; }
+
+    const displayName = (profile.full_name && profile.full_name.trim())
+      ? profile.full_name.trim().split(' ')[0]
+      : (profile.email ? profile.email.split('@')[0] : 'there');
+    const fullDisplayName = (profile.full_name && profile.full_name.trim()) ? profile.full_name.trim() : displayName;
+    const initial = displayName.charAt(0).toUpperCase();
+
+    window.clientFirstName = displayName;
+    document.getElementById('headTitle').innerHTML = 'Good morning,<br><em>'+displayName+'</em>';
+    document.querySelector('.sb-name').textContent = fullDisplayName;
+    document.querySelector('.sb-ava').textContent = initial;
+    document.querySelector('.avatar').textContent = initial;
+
     loadHabits();
   })();
 
@@ -380,7 +393,7 @@
     </div>
     <div class="sb-foot">
       <div class="sb-ava">K</div>
-      <div style="flex:1;"><div class="sb-name">Kia Stickney</div><div class="sb-role">Week 3 &middot; Rebuild</div></div>
+      <div style="flex:1;"><div class="sb-name">Loading...</div><div class="sb-role">Week 3 &middot; Rebuild</div></div>
       <a href="#" title="Log out" onclick="logOut();return false;" style="color:rgba(255,255,255,0.55);font-size:12px;text-decoration:none;">&#8618;</a>
     </div>
   </aside>
@@ -388,7 +401,7 @@
   <div class="main">
   <div class="app-head">
     <div class="head-row">
-      <div><div class="brand-tag">Coaching by Tab</div><div class="head-title" id="headTitle">Good morning,<br><em>Kia</em></div><div class="head-sub" id="headSub">Week 3 &middot; Rebuild phase</div></div>
+      <div><div class="brand-tag">Coaching by Tab</div><div class="head-title" id="headTitle">Good morning,<br><em>there</em></div><div class="head-sub" id="headSub">Week 3 &middot; Rebuild phase</div></div>
       <div class="avatar">K</div>
     </div>
   </div>
@@ -688,12 +701,12 @@
   const screens=['home','coaching','education','checkin','profile','log','plate'];
   const navMap={home:'nav-home',coaching:'nav-coaching',education:'nav-education',checkin:'nav-checkin',profile:'nav-profile'};
   const headers={
-    home:['Good morning,<br><em>Kia</em>','Week 3 \u00b7 Rebuild phase'],
+    home:['Good morning,<br><em>{{NAME}}</em>','Week 3 \u00b7 Rebuild phase'],
     coaching:['<em>Coaching</em>','Your tools, all in one place'],
     education:['<em>Education</em>','Learn as you go'],
     checkin:['Weekly <em>reflection</em>','The stepping stone'],
     profile:['Your <em>profile</em>','Who you are, where you are'],
-    log:['Good morning,<br><em>Kia</em>','Week 3 \u00b7 Rebuild phase'],
+    log:['Good morning,<br><em>{{NAME}}</em>','Week 3 \u00b7 Rebuild phase'],
     plate:['<em>Coaching</em>','Your tools, all in one place']
   };
   function go(id){
@@ -701,7 +714,7 @@
     Object.values(navMap).forEach(n=>document.getElementById(n).classList.remove('on'));
     if(navMap[id])document.getElementById(navMap[id]).classList.add('on');
     const h=headers[id];
-    document.getElementById('headTitle').innerHTML=h[0];
+    document.getElementById('headTitle').innerHTML=h[0].replace('{{NAME}}', window.clientFirstName || 'there');
     document.getElementById('headSub').textContent=h[1];
     if(id==='checkin'){resetCheckin();checkinTab('current');}
     if(id==='log'){startWorkout();} else {stopWorkoutTimer();}
