@@ -594,7 +594,11 @@
       <button class="sb-item" id="nav-announce" onclick="go('announce')"><span class="sb-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.4v3.2c0 .6.5 1 1 1h1.3l.9 3.6a1 1 0 0 0 1 .8h1l-.6-4.4H14l3 2.4V4.6l-3 2.4H4c-.5 0-1 .4-1 1.4z"/><path d="M14 6.2v7.6"/></svg></span><span>Announcements</span></button>
       <button class="sb-item" id="nav-resources" onclick="go('resources')"><span class="sb-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5c1.8-.9 4-.9 6.2 0v11.5c-2.2-.9-4.4-.9-6.2 0V4.5z"/><path d="M16.2 4.5c-1.8-.9-4-.9-6.2 0v11.5c2.2-.9 4.4-.9 6.2 0V4.5z"/></svg></span><span>Resources</span></button>
       <button class="sb-item" id="nav-desk" onclick="go('desk')"><span class="sb-ico">&#9998;</span><span>My desk</span></button>
-      <button class="sb-item" id="nav-library" onclick="go('library')"><span class="sb-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="10" x2="14" y2="10"/><rect x="2.5" y="7.5" width="3" height="5" rx="1"/><rect x="14.5" y="7.5" width="3" height="5" rx="1"/><rect x="1" y="8.8" width="1.5" height="2.4" rx="0.5"/><rect x="17.5" y="8.8" width="1.5" height="2.4" rx="0.5"/></svg></span><span>Exercise library</span></button>
+      <button class="sb-item" id="nav-libraryToggle" onclick="toggleLibraryNav()"><span class="sb-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="10" x2="14" y2="10"/><rect x="2.5" y="7.5" width="3" height="5" rx="1"/><rect x="14.5" y="7.5" width="3" height="5" rx="1"/><rect x="1" y="8.8" width="1.5" height="2.4" rx="0.5"/><rect x="17.5" y="8.8" width="1.5" height="2.4" rx="0.5"/></svg></span><span>Library</span><span id="libCaret" style="margin-left:auto;font-size:10px;transition:transform 0.2s;">&#9660;</span></button>
+      <div id="libSubNav" style="max-height:0;overflow:hidden;transition:max-height 0.25s ease;">
+        <button class="sb-item" id="nav-library" onclick="go('library')" style="padding-left:38px;font-size:12.5px;"><span>Exercises</span></button>
+        <button class="sb-item" id="nav-recipes" onclick="go('recipes')" style="padding-left:38px;font-size:12.5px;"><span>Recipes</span></button>
+      </div>
     </div>
     <div class="sb-foot" style="flex-direction:column;align-items:stretch;gap:12px;">
       <div style="display:flex;align-items:center;gap:11px;">
@@ -1110,6 +1114,70 @@ Coaching reminders:
       </div>
     </div>
 
+    <!-- RECIPES -->
+    <div class="page" id="recipes">
+      <div class="page-head">
+        <div class="page-title">Recipe <em>library</em></div>
+        <div class="page-sub" id="recPageSub">Every recipe you can share with clients. Click a card for full details.</div>
+      </div>
+
+      <div class="roster-tools">
+        <input class="search" id="recPageSearch" placeholder="Search by name or category..." oninput="renderRecipeLibraryPage()">
+        <select class="select-in" id="recCatFilter" style="width:170px;" onchange="renderRecipeLibraryPage()">
+          <option value="">All categories</option>
+          <option>Breakfast</option><option>Lunch</option><option>Dinner</option>
+          <option>Snack</option><option>Soup</option><option>Salad/Bowl</option>
+        </select>
+        <button class="btn-sm primary" onclick="openRecipeModal()">+ Add recipe</button>
+      </div>
+
+      <div id="recipeGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px;margin-top:16px;">
+        <div style="padding:20px;color:var(--muted);font-size:12.5px;">Loading...</div>
+      </div>
+    </div>
+
+    <div class="modal-back" id="recipeModal" onclick="if(event.target===this)closeRecipeModal()">
+      <div class="modal" style="max-width:600px;">
+        <div class="modal-head">
+          <div><div class="modal-title" id="recModalTitle">New recipe</div><div class="modal-sub" id="recModalSub">Add it once, share it with any client.</div></div>
+          <button class="modal-x" onclick="closeRecipeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="recId">
+          <label class="field-lbl">Name</label>
+          <input class="select-in" id="recName" placeholder="e.g. Grilled Chicken Bowl" style="width:100%;margin-bottom:14px;">
+
+          <label class="field-lbl">Category</label>
+          <select class="select-in" id="recCategory" style="width:100%;margin-bottom:14px;">
+            <option>Breakfast</option><option>Lunch</option><option>Dinner</option>
+            <option>Snack</option><option>Soup</option><option>Salad/Bowl</option>
+          </select>
+
+          <div style="display:flex;gap:10px;margin-bottom:14px;">
+            <div style="flex:1;"><label class="field-lbl">Calories</label><input class="select-in" type="number" id="recCal" style="width:100%;"></div>
+            <div style="flex:1;"><label class="field-lbl">Protein (g)</label><input class="select-in" type="number" id="recProtein" style="width:100%;"></div>
+            <div style="flex:1;"><label class="field-lbl">Carbs (g)</label><input class="select-in" type="number" id="recCarbs" style="width:100%;"></div>
+            <div style="flex:1;"><label class="field-lbl">Fat (g)</label><input class="select-in" type="number" id="recFat" style="width:100%;"></div>
+          </div>
+
+          <label class="field-lbl">Ingredients <span style="font-weight:400;text-transform:none;color:var(--muted);">(one per line)</span></label>
+          <textarea class="ta" id="recIngredients" placeholder="2 eggs&#10;1 cup spinach&#10;1 tbsp olive oil" style="width:100%;min-height:70px;margin-bottom:14px;"></textarea>
+
+          <label class="field-lbl">Instructions</label>
+          <textarea class="ta" id="recInstructions" placeholder="Step-by-step directions..." style="width:100%;min-height:90px;margin-bottom:14px;"></textarea>
+
+          <label class="field-lbl">Photo URL <span style="font-weight:400;text-transform:none;color:var(--muted);">(paste a link, direct uploads aren't built yet)</span></label>
+          <input class="select-in" id="recImage" placeholder="https://..." style="width:100%;margin-bottom:14px;" oninput="updateRecImgPreview()">
+          <img id="recImgPreview" style="display:none;width:100%;max-height:180px;object-fit:cover;border-radius:10px;margin-bottom:18px;">
+
+          <div style="display:flex;gap:10px;">
+            <button class="btn-sm primary" style="flex:1;padding:12px;" onclick="saveRecipe()">Save recipe</button>
+            <button class="btn-sm st-red" id="recDeleteBtn" style="padding:12px 18px;display:none;" onclick="deleteRecipeFromModal()">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -1397,8 +1465,8 @@ Coaching reminders:
 <div class="demo-note">Coach dashboard prototype &middot; Tab's side. Sidebar switches views. Click any flagged client to open detail. Bellamy: the AI assist surfaces insights &amp; drafts (sidebar), and the floating sunflower button bottom-right lets you ask about any client. Sample data throughout.</div>
 
 <script>
-  const pages=['home','pending','queue','roster','client','lens','announce','resources','desk','builder','library'];
-  const navMap={home:'nav-home',pending:'nav-pending',queue:'nav-queue',roster:'nav-roster',builder:'nav-builder',lens:'nav-lens',announce:'nav-announce',resources:'nav-resources',desk:'nav-desk',library:'nav-library'};
+  const pages=['home','pending','queue','roster','client','lens','announce','resources','desk','builder','library','recipes'];
+  const navMap={home:'nav-home',pending:'nav-pending',queue:'nav-queue',roster:'nav-roster',builder:'nav-builder',lens:'nav-lens',announce:'nav-announce',resources:'nav-resources',desk:'nav-desk',library:'nav-library',recipes:'nav-recipes'};
   function go(id){
     pages.forEach(p=>document.getElementById(p).classList.toggle('on',p===id));
     Object.values(navMap).forEach(n=>document.getElementById(n).classList.remove('on'));
@@ -1410,7 +1478,19 @@ Coaching reminders:
     if(id==='home'){loadHomeStats();loadHomeQueuePreview();}
     if(id==='builder'){loadBuilderClients();loadExerciseLibrary();}
     if(id==='library'){loadExerciseLibraryPage();}
+    if(id==='recipes'){loadRecipeLibraryPage();}
+    if(id==='library'||id==='recipes'){
+      document.getElementById('libSubNav').style.maxHeight='96px';
+      document.getElementById('libCaret').style.transform='rotate(180deg)';
+    }
     document.querySelector('.main').scrollTop=0;
+  }
+  function toggleLibraryNav(){
+    const nav = document.getElementById('libSubNav');
+    const caret = document.getElementById('libCaret');
+    const isOpen = nav.style.maxHeight && nav.style.maxHeight !== '0px';
+    nav.style.maxHeight = isOpen ? '0' : '96px';
+    caret.style.transform = isOpen ? 'none' : 'rotate(180deg)';
   }
   // ── Real check-in queue ──
   function localDateStr(d){
@@ -1540,6 +1620,106 @@ Coaching reminders:
   async function loadExerciseLibraryPage(){
     await loadExerciseLibrary();
     renderLibraryPage();
+  }
+
+  // ── Recipe library ──
+  let recipeLibrary = [];
+
+  async function loadRecipeLibraryPage(){
+    const { data } = await supabaseClient.from('recipe_library').select('*').order('name', { ascending: true });
+    recipeLibrary = data || [];
+    renderRecipeLibraryPage();
+  }
+
+  function renderRecipeLibraryPage(){
+    const q = (document.getElementById('recPageSearch').value || '').toLowerCase();
+    const cat = document.getElementById('recCatFilter').value;
+    const grid = document.getElementById('recipeGrid');
+    document.getElementById('recPageSub').textContent = recipeLibrary.length + ' recipes in your library. Click a card for full details.';
+
+    let filtered = recipeLibrary;
+    if (cat) filtered = filtered.filter(r => r.category === cat);
+    if (q) filtered = filtered.filter(r => r.name.toLowerCase().includes(q) || (r.category||'').toLowerCase().includes(q));
+
+    if (!filtered.length){
+      grid.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:12.5px;">No matches.</div>';
+      return;
+    }
+    grid.innerHTML = filtered.map(r => `
+      <div onclick="openRecipeModal('${r.id}')" style="cursor:pointer;background:var(--paper);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:transform 0.15s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+        <div style="height:120px;background:${r.image_url ? `url('${r.image_url}') center/cover` : 'linear-gradient(135deg,var(--plum),var(--purple-rich))'};"></div>
+        <div style="padding:12px 14px;">
+          <div style="font-size:9.5px;letter-spacing:0.8px;text-transform:uppercase;color:var(--purple-rich);font-weight:700;margin-bottom:4px;">${r.category||''}</div>
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">${r.name}</div>
+          <div style="font-size:11px;color:var(--muted);">${r.calories||'\u2014'} cal &middot; P${r.protein_g||0}g &middot; C${r.carbs_g||0}g &middot; F${r.fat_g||0}g</div>
+        </div>
+      </div>`).join('');
+  }
+
+  function updateRecImgPreview(){
+    const url = document.getElementById('recImage').value.trim();
+    const img = document.getElementById('recImgPreview');
+    if (url){ img.src = url; img.style.display = 'block'; } else { img.style.display = 'none'; }
+  }
+
+  function openRecipeModal(id){
+    const r = id ? recipeLibrary.find(x => x.id === id) : null;
+    document.getElementById('recId').value = r ? r.id : '';
+    document.getElementById('recName').value = r ? r.name : '';
+    document.getElementById('recCategory').value = r ? (r.category||'Breakfast') : 'Breakfast';
+    document.getElementById('recCal').value = r ? (r.calories||'') : '';
+    document.getElementById('recProtein').value = r ? (r.protein_g||'') : '';
+    document.getElementById('recCarbs').value = r ? (r.carbs_g||'') : '';
+    document.getElementById('recFat').value = r ? (r.fat_g||'') : '';
+    document.getElementById('recIngredients').value = r ? (r.ingredients||'') : '';
+    document.getElementById('recInstructions').value = r ? (r.instructions||'') : '';
+    document.getElementById('recImage').value = r ? (r.image_url||'') : '';
+    updateRecImgPreview();
+
+    document.getElementById('recModalTitle').textContent = r ? r.name : 'New recipe';
+    document.getElementById('recModalSub').textContent = r ? 'Edit details, ingredients, or photo.' : 'Add it once, share it with any client.';
+    document.getElementById('recDeleteBtn').style.display = r ? 'block' : 'none';
+    document.getElementById('recipeModal').classList.add('open');
+  }
+  function closeRecipeModal(){
+    document.getElementById('recipeModal').classList.remove('open');
+  }
+
+  async function saveRecipe(){
+    const id = document.getElementById('recId').value;
+    const name = document.getElementById('recName').value.trim();
+    if (!name){ toast('Give the recipe a name'); return; }
+
+    const payload = {
+      name,
+      category: document.getElementById('recCategory').value,
+      calories: parseInt(document.getElementById('recCal').value) || null,
+      protein_g: parseInt(document.getElementById('recProtein').value) || null,
+      carbs_g: parseInt(document.getElementById('recCarbs').value) || null,
+      fat_g: parseInt(document.getElementById('recFat').value) || null,
+      ingredients: document.getElementById('recIngredients').value.trim() || null,
+      instructions: document.getElementById('recInstructions').value.trim() || null,
+      image_url: document.getElementById('recImage').value.trim() || null
+    };
+
+    const { error } = id
+      ? await supabaseClient.from('recipe_library').update(payload).eq('id', id)
+      : await supabaseClient.from('recipe_library').insert(payload);
+
+    if (error){ toast(error.message.includes('duplicate') ? 'That recipe already exists' : 'Something went wrong'); return; }
+
+    closeRecipeModal();
+    toast(id ? 'Recipe updated' : 'Recipe added');
+    await loadRecipeLibraryPage();
+  }
+
+  async function deleteRecipe(id){
+    await supabaseClient.from('recipe_library').delete().eq('id', id);
+    await loadRecipeLibraryPage();
+  }
+  function deleteRecipeFromModal(){
+    const id = document.getElementById('recId').value;
+    if (id){ deleteRecipe(id); closeRecipeModal(); }
   }
 
   function updateExImgPreview(){
