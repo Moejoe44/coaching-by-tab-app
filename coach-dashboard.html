@@ -639,8 +639,18 @@
         ${r.contacted
           ? '<span class="q-status" style="background:var(--green-bg,#eef4ef);color:var(--green,#5f8f6b);">Contacted</span>'
           : `<button class="q-status" style="cursor:pointer;border:none;font:inherit;background:var(--green-bg,#eef4ef);color:var(--green,#5f8f6b);" onclick="markContacted('${r.id}')">Mark contacted</button>`}
+        <button class="q-status st-red" style="cursor:pointer;border:none;font:inherit;margin-left:8px;" onclick="deleteLead('${r.id}')">Delete</button>
       </div>`;
     }).join('');
+  }
+
+  async function deleteLead(id){
+    await supabaseClient.from('consultations').delete().eq('id', id);
+    const row = document.getElementById('lead-'+id);
+    if (row) row.remove();
+    refreshLeadsBadge();
+    const remaining = document.getElementById('leadsList').children.length;
+    if (!remaining) document.getElementById('leadsList').innerHTML = '<div style="padding:20px;color:#8a7a90;font-size:12.5px;">No consultation requests yet.</div>';
   }
 
   async function markContacted(id){
