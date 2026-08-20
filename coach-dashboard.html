@@ -1045,7 +1045,7 @@ Coaching reminders:
     <div class="page" id="library">
       <div class="page-head">
         <div class="page-title">Exercise <em>library</em></div>
-        <div class="page-sub" id="libPageSub">Every exercise you can pull into a workout. Add new ones here anytime.</div>
+        <div class="page-sub" id="libPageSub">Every exercise you can pull into a workout. Click a name for instructions and photo.</div>
       </div>
 
       <div class="roster-tools">
@@ -1053,35 +1053,66 @@ Coaching reminders:
         <button class="btn-sm primary" onclick="openExerciseModal()">+ Add exercise</button>
       </div>
 
-      <div class="queue-card" id="libPageList" style="margin-top:16px;">
-        <div style="padding:20px;color:var(--muted);font-size:12.5px;">Loading...</div>
+      <div class="card" style="margin-top:16px;padding:0;overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;min-width:760px;">
+          <thead>
+            <tr style="border-bottom:1.5px solid var(--border);">
+              <th style="text-align:left;padding:12px 14px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700;width:52px;"></th>
+              <th style="text-align:left;padding:12px 14px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700;">Name</th>
+              <th style="text-align:left;padding:12px 14px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700;">Modality</th>
+              <th style="text-align:left;padding:12px 14px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700;">Muscle Group</th>
+              <th style="text-align:left;padding:12px 14px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700;">Movement Pattern</th>
+              <th style="text-align:left;padding:12px 14px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700;">Category</th>
+              <th style="width:60px;"></th>
+            </tr>
+          </thead>
+          <tbody id="libPageList">
+            <tr><td colspan="7" style="padding:20px;color:var(--muted);font-size:12.5px;">Loading...</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
     <div class="modal-back" id="exerciseModal" onclick="if(event.target===this)closeExerciseModal()">
-      <div class="modal">
+      <div class="modal" style="max-width:600px;">
         <div class="modal-head">
-          <div><div class="modal-title">New exercise</div><div class="modal-sub">Add it once, use it in every workout from now on.</div></div>
+          <div><div class="modal-title" id="exModalTitle">New exercise</div><div class="modal-sub" id="exModalSub">Add it once, use it in every workout from now on.</div></div>
           <button class="modal-x" onclick="closeExerciseModal()">&times;</button>
         </div>
         <div class="modal-body">
+          <input type="hidden" id="exId">
           <label class="field-lbl">Name</label>
           <input class="select-in" id="exName" placeholder="e.g. Cable Woodchop" style="width:100%;margin-bottom:14px;">
-          <label class="field-lbl">Movement pattern</label>
-          <input class="select-in" id="exPattern" placeholder="e.g. Core, Squat, Hinge" style="width:100%;margin-bottom:14px;">
-          <label class="field-lbl">Muscle group</label>
-          <input class="select-in" id="exMuscle" placeholder="e.g. Core, Quads, Chest" style="width:100%;margin-bottom:14px;">
+
+          <div style="display:flex;gap:12px;margin-bottom:14px;">
+            <div style="flex:1;"><label class="field-lbl">Modality</label><input class="select-in" id="exModality" placeholder="e.g. Strength, Cardio" style="width:100%;"></div>
+            <div style="flex:1;"><label class="field-lbl">Category</label><input class="select-in" id="exCategory" placeholder="e.g. Bodyweight, Timed" style="width:100%;"></div>
+          </div>
+          <div style="display:flex;gap:12px;margin-bottom:14px;">
+            <div style="flex:1;"><label class="field-lbl">Muscle group</label><input class="select-in" id="exMuscle" placeholder="e.g. Core, Quads, Chest" style="width:100%;"></div>
+            <div style="flex:1;"><label class="field-lbl">Movement pattern</label><input class="select-in" id="exPattern" placeholder="e.g. Squat, Hinge" style="width:100%;"></div>
+          </div>
           <label class="field-lbl">Equipment</label>
           <input class="select-in" id="exEquipment" placeholder="e.g. Cable, Dumbbell, Bodyweight" style="width:100%;margin-bottom:14px;">
-          <label class="field-lbl">Photo URL <span style="font-weight:400;text-transform:none;color:var(--muted);">(optional, paste a link, uploads aren't built yet)</span></label>
-          <input class="select-in" id="exImage" placeholder="https://..." style="width:100%;margin-bottom:18px;">
-          <button class="btn-sm primary" style="width:100%;padding:12px;" onclick="saveNewExercise()">Save exercise</button>
+
+          <label class="field-lbl">How to do it <span style="font-weight:400;text-transform:none;color:var(--muted);">(shown to you when building a workout, and eventually clients too)</span></label>
+          <textarea class="ta" id="exInstructions" placeholder="Step-by-step cues, setup, common mistakes to watch for..." style="width:100%;min-height:90px;margin-bottom:14px;"></textarea>
+
+          <label class="field-lbl">Photo URL <span style="font-weight:400;text-transform:none;color:var(--muted);">(paste a link, direct uploads aren't built yet)</span></label>
+          <input class="select-in" id="exImage" placeholder="https://..." style="width:100%;margin-bottom:14px;" oninput="updateExImgPreview()">
+          <img id="exImgPreview" style="display:none;width:100%;max-height:180px;object-fit:cover;border-radius:10px;margin-bottom:18px;">
+
+          <div style="display:flex;gap:10px;">
+            <button class="btn-sm primary" style="flex:1;padding:12px;" onclick="saveExercise()">Save exercise</button>
+            <button class="btn-sm st-red" id="exDeleteBtn" style="padding:12px 18px;display:none;" onclick="deleteExerciseFromModal()">Delete</button>
+          </div>
         </div>
       </div>
     </div>
 
   </div>
 </div>
+
 <!-- ASK BELLAMY FLOATING CHAT -->
 <button class="bell-fab" id="bellFab" onclick="bellOpen()"><span class="sunflower light" style="width:26px;height:26px;"></span></button>
 <div class="bell-panel" id="bellPanel">
@@ -1485,19 +1516,25 @@ Coaching reminders:
   function renderLibraryPage(){
     const q = (document.getElementById('libPageSearch').value || '').toLowerCase();
     const list = document.getElementById('libPageList');
-    document.getElementById('libPageSub').textContent = exerciseLibrary.length + ' exercises in your library. Add new ones here anytime.';
-    const filtered = q ? exerciseLibrary.filter(e => e.name.toLowerCase().includes(q) || (e.muscle_group||'').toLowerCase().includes(q) || (e.pattern||'').toLowerCase().includes(q) || (e.equipment||'').toLowerCase().includes(q)) : exerciseLibrary;
+    document.getElementById('libPageSub').textContent = exerciseLibrary.length + ' exercises in your library. Click a name for instructions and photo.';
+    const filtered = q ? exerciseLibrary.filter(e => e.name.toLowerCase().includes(q) || (e.muscle_group||'').toLowerCase().includes(q) || (e.pattern||'').toLowerCase().includes(q) || (e.equipment||'').toLowerCase().includes(q) || (e.modality||'').toLowerCase().includes(q) || (e.category||'').toLowerCase().includes(q)) : exerciseLibrary;
 
     if (!filtered.length){
-      list.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:12.5px;">No matches.</div>';
+      list.innerHTML = '<tr><td colspan="7" style="padding:20px;color:var(--muted);font-size:12.5px;">No matches.</td></tr>';
       return;
     }
     list.innerHTML = filtered.map(e => `
-      <div class="q-row" style="cursor:default;">
-        ${e.image_url ? `<img src="${e.image_url}" style="width:38px;height:38px;border-radius:9px;object-fit:cover;flex-shrink:0;">` : `<div style="width:38px;height:38px;border-radius:9px;background:#efe9f2;flex-shrink:0;"></div>`}
-        <div class="q-info"><div class="q-name">${e.name}</div><div class="q-detail">${e.pattern||'\u2014'}${e.muscle_group?' \u00b7 '+e.muscle_group:''}${e.equipment?' \u00b7 '+e.equipment:''}</div></div>
-        <button class="q-status st-red" style="border:none;cursor:pointer;font:inherit;" onclick="deleteExercise('${e.id}')">Delete</button>
-      </div>`).join('');
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:9px 14px;">
+          ${e.image_url ? `<img src="${e.image_url}" style="width:34px;height:34px;border-radius:8px;object-fit:cover;">` : `<div style="width:34px;height:34px;border-radius:8px;background:#efe9f2;"></div>`}
+        </td>
+        <td style="padding:9px 14px;"><span onclick="openExerciseModal('${e.id}')" style="font-size:13px;font-weight:600;color:var(--plum);cursor:pointer;">${e.name}</span></td>
+        <td style="padding:9px 14px;font-size:12.5px;color:var(--ink-soft);">${e.modality||'\u2014'}</td>
+        <td style="padding:9px 14px;font-size:12.5px;color:var(--ink-soft);">${e.muscle_group||'\u2014'}</td>
+        <td style="padding:9px 14px;font-size:12.5px;color:var(--ink-soft);">${e.pattern||'\u2014'}</td>
+        <td style="padding:9px 14px;font-size:12.5px;color:var(--ink-soft);">${e.category||'\u2014'}</td>
+        <td style="padding:9px 14px;"><button style="border:none;background:none;color:var(--muted);cursor:pointer;font-size:12px;" onclick="deleteExercise('${e.id}')">Delete</button></td>
+      </tr>`).join('');
   }
 
   async function loadExerciseLibraryPage(){
@@ -1505,33 +1542,58 @@ Coaching reminders:
     renderLibraryPage();
   }
 
-  function openExerciseModal(){
-    document.getElementById('exName').value = '';
-    document.getElementById('exPattern').value = '';
-    document.getElementById('exMuscle').value = '';
-    document.getElementById('exEquipment').value = '';
-    document.getElementById('exImage').value = '';
+  function updateExImgPreview(){
+    const url = document.getElementById('exImage').value.trim();
+    const img = document.getElementById('exImgPreview');
+    if (url){ img.src = url; img.style.display = 'block'; } else { img.style.display = 'none'; }
+  }
+
+  function openExerciseModal(id){
+    const ex = id ? exerciseLibrary.find(e => e.id === id) : null;
+    document.getElementById('exId').value = ex ? ex.id : '';
+    document.getElementById('exName').value = ex ? ex.name : '';
+    document.getElementById('exModality').value = ex ? (ex.modality||'') : 'Strength';
+    document.getElementById('exCategory').value = ex ? (ex.category||'') : '';
+    document.getElementById('exPattern').value = ex ? (ex.pattern||'') : '';
+    document.getElementById('exMuscle').value = ex ? (ex.muscle_group||'') : '';
+    document.getElementById('exEquipment').value = ex ? (ex.equipment||'') : '';
+    document.getElementById('exInstructions').value = ex ? (ex.instructions||'') : '';
+    document.getElementById('exImage').value = ex ? (ex.image_url||'') : '';
+    updateExImgPreview();
+
+    document.getElementById('exModalTitle').textContent = ex ? ex.name : 'New exercise';
+    document.getElementById('exModalSub').textContent = ex ? 'Edit details, add instructions, or attach a photo.' : 'Add it once, use it in every workout from now on.';
+    document.getElementById('exDeleteBtn').style.display = ex ? 'block' : 'none';
     document.getElementById('exerciseModal').classList.add('open');
   }
   function closeExerciseModal(){
     document.getElementById('exerciseModal').classList.remove('open');
   }
 
-  async function saveNewExercise(){
+  async function saveExercise(){
+    const id = document.getElementById('exId').value;
     const name = document.getElementById('exName').value.trim();
     if (!name){ toast('Give the exercise a name'); return; }
 
-    const { error } = await supabaseClient.from('exercise_library').insert({
+    const payload = {
       name,
+      modality: document.getElementById('exModality').value.trim() || null,
+      category: document.getElementById('exCategory').value.trim() || null,
       pattern: document.getElementById('exPattern').value.trim() || null,
       muscle_group: document.getElementById('exMuscle').value.trim() || null,
       equipment: document.getElementById('exEquipment').value.trim() || null,
+      instructions: document.getElementById('exInstructions').value.trim() || null,
       image_url: document.getElementById('exImage').value.trim() || null
-    });
+    };
+
+    const { error } = id
+      ? await supabaseClient.from('exercise_library').update(payload).eq('id', id)
+      : await supabaseClient.from('exercise_library').insert(payload);
+
     if (error){ toast(error.message.includes('duplicate') ? 'That exercise already exists' : 'Something went wrong'); return; }
 
     closeExerciseModal();
-    toast('Exercise added');
+    toast(id ? 'Exercise updated' : 'Exercise added');
     await loadExerciseLibrary();
     renderLibraryPage();
   }
@@ -1540,6 +1602,10 @@ Coaching reminders:
     await supabaseClient.from('exercise_library').delete().eq('id', id);
     await loadExerciseLibrary();
     renderLibraryPage();
+  }
+  function deleteExerciseFromModal(){
+    const id = document.getElementById('exId').value;
+    if (id){ deleteExercise(id); closeExerciseModal(); }
   }
 
   function fillPatternFromLibrary(input){
