@@ -404,6 +404,7 @@
     loadGoals();
     loadCheckinStatus();
     loadTodaysWorkout();
+    loadMyRecipes();
   })();
 
   async function logOut(){
@@ -535,6 +536,9 @@
         <div class="drag-tip">Life happens: drag a session to a different day. Your program stays the same.</div>
       </div>
       <div class="sec-label">Nutrition</div>
+      <div class="card card-clickable" onclick="go('myrecipes')">
+        <div class="tool-tile"><div class="tool-ico soft"><svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="#5a4a60" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2.5v6.2M4.3 2.5v4.4a1.7 1.7 0 0 0 3.4 0V2.5"/><path d="M6 8.7V17.5"/><path d="M14.5 2.5c-1.5 0-2.4 1.7-2.4 4.2 0 1.7.8 2.7 1.7 3v7.8"/></svg></div><div class="tool-body"><div class="tool-title">My Recipes</div><div class="tool-sub" id="myRecipesCount">Recipes Tab has picked out for you</div></div><div class="tool-arrow">&rsaquo;</div></div>
+      </div>
       <div class="card card-clickable" onclick="go('plate')">
         <div class="tool-tile"><div class="tool-ico soft"><svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="#5a4a60" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.2"/><circle cx="10" cy="10" r="3.6"/></svg></div><div class="tool-body"><div class="tool-title">Build My Plate</div><div class="tool-sub">Snap your meal and learn to eyeball your portions, not depend on an app forever.</div></div><div class="tool-arrow">&rsaquo;</div></div>
       </div>
@@ -708,6 +712,14 @@
       <div class="placeholder"><div class="placeholder-ico"><svg width="34" height="34" viewBox="0 0 20 20" fill="none" stroke="#8a7a90" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5a1.5 1.5 0 0 1 1.5-1.5h1.8l.9-1.5h5.6l.9 1.5h1.8A1.5 1.5 0 0 1 17 7.5v7A1.5 1.5 0 0 1 15.5 16h-11A1.5 1.5 0 0 1 3 14.5v-7z"/><circle cx="10" cy="10.8" r="2.7"/></svg></div><div class="placeholder-h">Snap a plate to begin</div><div class="placeholder-p">In the built app, this opens the camera and returns portion feedback. The engine reads the photo the way a coach eyeballs a plate.</div></div>
     </div>
 
+    <!-- MY RECIPES -->
+    <div class="screen" id="myrecipes">
+      <button class="back-btn" onclick="go('coaching')">&larr; Coaching</button>
+      <div class="screen-h">My recipes</div>
+      <div class="screen-p">Whatever Tab has picked out for you, organized so it's easy to find something for right now.</div>
+      <div id="myRecipesList"><div style="padding:10px 0;color:#8a7a90;font-size:12.5px;">Loading...</div></div>
+    </div>
+
     <!-- SIGNATURE ASSESSMENT -->
     <div class="screen" id="assessment">
       <button class="back-btn" onclick="go('profile')">&larr; Profile</button>
@@ -728,7 +740,7 @@
   </div>
 </div>
 <script>
-  const screens=['home','coaching','education','checkin','profile','log','plate','assessment'];
+  const screens=['home','coaching','education','checkin','profile','log','plate','assessment','myrecipes'];
   const navMap={home:'nav-home',coaching:'nav-coaching',education:'nav-education',checkin:'nav-checkin',profile:'nav-profile'};
   const headers={
     home:['Good morning,<br><em>{{NAME}}</em>','Week 3 \u00b7 Rebuild phase'],
@@ -738,7 +750,8 @@
     profile:['Your <em>profile</em>','Who you are, where you are'],
     log:['Good morning,<br><em>{{NAME}}</em>','Week 3 \u00b7 Rebuild phase'],
     plate:['<em>Coaching</em>','Your tools, all in one place'],
-    assessment:['Your <em>Signature</em> Assessment','25 questions, answered honestly']
+    assessment:['Your <em>Signature</em> Assessment','25 questions, answered honestly'],
+    myrecipes:['My <em>recipes</em>','Picked out for you by Tab']
   };
   function go(id){
     screens.forEach(s=>document.getElementById(s).classList.toggle('active',s===id));
@@ -751,6 +764,7 @@
     if(id==='log'){startWorkout();} else {stopWorkoutTimer();}
     if(id==='assessment'){assessAnswers={};renderAssessment();}
     if(id==='profile'){loadAssessmentSummary();}
+    if(id==='myrecipes'){loadMyRecipes();}
     document.getElementById('appBody').scrollTop=0;
   }
   function checkinTab(tab){
@@ -978,6 +992,61 @@
       ${dims.map(([name,pct]) => `<div class="dim"><div class="dim-row"><span class="dim-name">${name}</span><span class="dim-pct">${pct}%</span></div><div class="dim-track"><div class="dim-fill ${dimFillClass(pct)}" style="width:${pct}%"></div></div></div>`).join('')}
       <div class="entry-note"><strong>Your coaching entry point:</strong> ${lowest[0]} (${lowest[1]}%) is where the most leverage is right now. Not your weakness. It's the door that opens the rest.</div>
     </div>`;
+  }
+
+  // ── Real assigned recipes ──
+  let myRecipes = [];
+
+  async function loadMyRecipes(){
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    const list = document.getElementById('myRecipesList');
+    if (!session) return;
+
+    const { data: rows, error } = await supabaseClient
+      .from('client_recipes').select('recipe_id, recipe_library(*)').eq('client_id', session.user.id);
+
+    myRecipes = (rows || []).map(r => r.recipe_library).filter(Boolean);
+    const countEl = document.getElementById('myRecipesCount');
+    if (countEl) countEl.textContent = myRecipes.length ? myRecipes.length + ' recipe' + (myRecipes.length===1?'':'s') + ' picked out for you' : 'Recipes Tab has picked out for you';
+
+    if (error || !myRecipes.length){
+      list.innerHTML = '<div style="padding:10px 0;color:#8a7a90;font-size:12.5px;">Tab hasn\u2019t assigned any recipes yet. Check back after your next check-in.</div>';
+      return;
+    }
+
+    const byCategory = {};
+    myRecipes.forEach((r,i) => {
+      const cat = r.category || 'Other';
+      if (!byCategory[cat]) byCategory[cat] = [];
+      byCategory[cat].push(i);
+    });
+
+    list.innerHTML = Object.keys(byCategory).map(cat => `
+      <div class="sec-label">${cat}</div>
+      <div class="card">
+        ${byCategory[cat].map(i => {
+          const r = myRecipes[i];
+          return `<div class="ex" style="cursor:pointer;" onclick="showRecipeInfo(${i})">
+            <div class="ex-thumb">${r.image_url ? `<img src="${r.image_url}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">` : ''}</div>
+            <div class="ex-info"><div class="ex-name">${r.name}</div><div class="ex-scheme">${r.calories?r.calories+' cal':''}${r.protein_g?' \u00b7 P'+r.protein_g+'g':''}${r.carbs_g?' \u00b7 C'+r.carbs_g+'g':''}${r.fat_g?' \u00b7 F'+r.fat_g+'g':''}</div></div>
+            <span style="color:var(--purple-mid);font-size:11px;font-weight:600;align-self:center;">View &rsaquo;</span>
+          </div>`;
+        }).join('')}
+      </div>`).join('');
+  }
+
+  function showRecipeInfo(idx){
+    const r = myRecipes[idx];
+    if (!r) return;
+    document.getElementById('altFor').textContent = r.name;
+    document.getElementById('altSheet').classList.add('open');
+    const macros = `${r.calories?r.calories+' cal':''}${r.protein_g?' \u00b7 Protein '+r.protein_g+'g':''}${r.carbs_g?' \u00b7 Carbs '+r.carbs_g+'g':''}${r.fat_g?' \u00b7 Fat '+r.fat_g+'g':''}`;
+    const ingredientsHtml = r.ingredients ? '<div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700;margin:14px 0 6px;">Ingredients</div><div style="font-size:13px;color:var(--ink-soft);line-height:1.7;white-space:pre-line;">'+r.ingredients+'</div>' : '';
+    document.getElementById('altList').innerHTML = `
+      ${r.image_url ? `<img src="${r.image_url}" style="width:100%;max-height:200px;object-fit:cover;border-radius:12px;margin-bottom:12px;">` : ''}
+      <div style="font-size:12px;color:var(--purple-rich);font-weight:600;margin-bottom:10px;">${macros}</div>
+      <div style="font-size:13.5px;color:var(--ink-soft);line-height:1.6;">${r.instructions || 'No instructions added yet.'}</div>
+      ${ingredientsHtml}`;
   }
 
   async function loadTodaysWorkout(){
