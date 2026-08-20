@@ -350,13 +350,29 @@
 
   @media(max-width:920px){
     .app-shell{flex-direction:column;}
-    .sidebar{width:100%;height:auto;position:relative;flex-direction:row;align-items:center;padding:14px 18px;gap:18px;}
+    .sidebar{width:100%;height:auto;position:relative;flex-direction:row;align-items:center;padding:14px 18px;gap:18px;flex-wrap:wrap;}
     .sidebar .nav{flex-direction:row;flex:none;gap:2px;}
     .sidebar .nav-item{flex-direction:column;padding:6px 10px;}
-    .sb-tag,.sb-foot{display:none;}
+    .sb-tag{display:none;}
+    .sb-foot{flex-direction:row !important;align-items:center !important;gap:8px !important;border:none !important;padding:0 !important;margin:0 0 0 auto !important;}
+    .sb-foot > div:first-child{display:none;}
+    .sb-foot button{width:auto !important;padding:8px 12px !important;font-size:0 !important;}
     .home-grid{grid-template-columns:1fr;}
     .app-head{padding:26px 22px;}
     .app-body{padding:24px 20px 50px;}
+  }
+
+  /* ── PHONE ── */
+  @media(max-width:520px){
+    .head-title{font-size:24px;}
+    .app-head{padding:20px 16px;}
+    .app-body{padding:18px 14px 50px;}
+    .stat-row{grid-template-columns:1fr 1fr;}
+    .card{padding:18px;}
+    .modal-body,.sheet{padding:18px;}
+    .sidebar{padding:12px;gap:10px;}
+    .nav-lbl{display:none;}
+    .nav-item{padding:8px;}
   }
 </style>
 </head>

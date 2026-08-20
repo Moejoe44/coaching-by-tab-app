@@ -502,6 +502,31 @@
     .sidebar{width:64px;padding:20px 8px;}
     .sb-brand,.sb-tag,.sb-item span:not(.sb-ico):not(.sb-count),.sb-name,.sb-role{display:none;}
     .sb-item{justify-content:center;}
+    #libSubNav{display:none;}
+  }
+
+  /* ── PHONE ── */
+  @media(max-width:600px){
+    body{font-size:15px;}
+    .main{padding:18px 16px 40px;}
+    .page-title{font-size:22px;}
+    .stat-grid{grid-template-columns:1fr 1fr;gap:10px;}
+    .statc{padding:14px;}
+    .statc-num{font-size:22px;}
+    .roster-tools{flex-wrap:wrap;}
+    .roster-tools .search{width:100%;flex:1 1 100%;}
+    .roster-grid{grid-template-columns:1fr;}
+    .detail-head{flex-wrap:wrap;}
+    .dh-actions{margin-left:0;width:100%;flex-wrap:wrap;}
+    .dh-actions .btn-sm{flex:1 1 auto;}
+    .q-row{flex-wrap:wrap;}
+    .q-time{width:100%;text-align:left;margin-top:4px;}
+    table{font-size:12px;}
+    .modal-body{padding:18px;}
+    .modal-head{padding:18px 18px 0;}
+    #recipeGrid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;}
+    .builder > div{grid-template-columns:1fr !important;}
+    .bell-panel{width:calc(100vw - 24px);right:12px;}
   }
 </style>
 </head>
