@@ -671,11 +671,12 @@
 
       <div class="wo-current">
         <div class="wo-cur-head">
-          <div class="wo-cur-thumb" onclick="alert('Plays your demo video')"></div>
+          <div class="wo-cur-thumb" id="woThumb" onclick="showExerciseInfo(woCur)"></div>
           <div>
             <div class="wo-cur-pattern" id="woPattern">Squat</div>
             <div class="wo-cur-name" id="woName">Goblet Squat</div>
             <div class="wo-cur-target" id="woTarget">Target: 4 &times; 8 &middot; RPE 7 &middot; 90s rest</div>
+            <span onclick="showExerciseInfo(woCur)" style="color:var(--purple-mid);font-size:11.5px;font-weight:600;cursor:pointer;">How to do this &rsaquo;</span>
           </div>
         </div>
 
@@ -999,16 +1000,34 @@
     todaysWorkoutId = w.id;
     const exercises = (w.workout_exercises || []).sort((a,b) => a.order_index - b.order_index);
 
+    const names = exercises.map(e => e.name);
+    let libByName = {};
+    if (names.length){
+      const { data: libRows } = await supabaseClient.from('exercise_library').select('name, instructions, image_url').in('name', names);
+      (libRows || []).forEach(l => { libByName[l.name.toLowerCase()] = l; });
+    }
+
     workout.length = 0;
     exercises.forEach(e => {
       const scheme = `Target: ${e.sets} \u00d7 ${e.reps}` + (e.rpe ? ` \u00b7 RPE ${e.rpe}` : '') + (e.rest_seconds ? ` \u00b7 ${e.rest_seconds}s rest` : '');
-      workout.push({ name: e.name, pattern: e.pattern || '', target: scheme, sets: e.sets });
+      const lib = libByName[e.name.toLowerCase()];
+      workout.push({ name: e.name, pattern: e.pattern || '', target: scheme, sets: e.sets, instructions: lib ? lib.instructions : null, image_url: lib ? lib.image_url : null });
     });
 
     card.innerHTML = `
       <div class="wk-head"><div><div class="wk-day">${w.day_label}</div><div class="wk-meta">Assigned by Tab</div></div></div>
-      ${exercises.map(e => `<div class="ex"><div class="ex-thumb"></div><div class="ex-info"><div class="ex-name">${e.name}</div><div class="ex-pattern">${e.pattern||''}</div><div class="ex-scheme">${e.sets} \u00d7 ${e.reps}${e.rpe?' \u00b7 RPE '+e.rpe:''}${e.rest_seconds?' \u00b7 '+e.rest_seconds+'s rest':''}</div></div></div>`).join('')}
+      ${workout.map((e,i) => `<div class="ex" style="cursor:pointer;" onclick="showExerciseInfo(${i})"><div class="ex-thumb">${e.image_url ? `<img src="${e.image_url}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">` : ''}</div><div class="ex-info"><div class="ex-name">${e.name}</div><div class="ex-pattern">${e.pattern||''}</div><div class="ex-scheme">${e.target.replace('Target: ','')}</div></div><span style="color:var(--purple-mid);font-size:11px;font-weight:600;align-self:center;">How to &rsaquo;</span></div>`).join('')}
       <button class="wk-log-btn" onclick="go('log')">Start workout &rarr;</button>`;
+  }
+
+  function showExerciseInfo(idx){
+    const e = workout[idx];
+    if (!e) return;
+    document.getElementById('altFor').textContent = e.name;
+    document.getElementById('altSheet').classList.add('open');
+    document.getElementById('altList').innerHTML = `
+      ${e.image_url ? `<img src="${e.image_url}" style="width:100%;max-height:220px;object-fit:cover;border-radius:12px;margin-bottom:14px;">` : ''}
+      <div style="font-size:13.5px;color:var(--ink-soft);line-height:1.6;">${e.instructions || 'Tab hasn\u2019t added step-by-step instructions for this one yet.'}</div>`;
   }
 
   async function loadGoals(){
@@ -1275,6 +1294,7 @@
     document.getElementById('woPattern').textContent=ex.pattern;
     document.getElementById('woName').textContent=ex.name;
     document.getElementById('woTarget').textContent=ex.target;
+    document.getElementById('woThumb').innerHTML = ex.image_url ? `<img src="${ex.image_url}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">` : '';
     const rows=document.getElementById('setRows'); rows.innerHTML='';
     for(let i=1;i<=ex.sets;i++){
       const r=document.createElement('div'); r.className='set-row';
