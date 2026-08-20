@@ -594,11 +594,17 @@
       <button class="sb-item" id="nav-announce" onclick="go('announce')"><span class="sb-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.4v3.2c0 .6.5 1 1 1h1.3l.9 3.6a1 1 0 0 0 1 .8h1l-.6-4.4H14l3 2.4V4.6l-3 2.4H4c-.5 0-1 .4-1 1.4z"/><path d="M14 6.2v7.6"/></svg></span><span>Announcements</span></button>
       <button class="sb-item" id="nav-resources" onclick="go('resources')"><span class="sb-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5c1.8-.9 4-.9 6.2 0v11.5c-2.2-.9-4.4-.9-6.2 0V4.5z"/><path d="M16.2 4.5c-1.8-.9-4-.9-6.2 0v11.5c2.2-.9 4.4-.9 6.2 0V4.5z"/></svg></span><span>Resources</span></button>
       <button class="sb-item" id="nav-desk" onclick="go('desk')"><span class="sb-ico">&#9998;</span><span>My desk</span></button>
+      <button class="sb-item" id="nav-library" onclick="go('library')"><span class="sb-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="10" x2="14" y2="10"/><rect x="2.5" y="7.5" width="3" height="5" rx="1"/><rect x="14.5" y="7.5" width="3" height="5" rx="1"/><rect x="1" y="8.8" width="1.5" height="2.4" rx="0.5"/><rect x="17.5" y="8.8" width="1.5" height="2.4" rx="0.5"/></svg></span><span>Exercise library</span></button>
     </div>
-    <div class="sb-foot">
-      <div class="sb-ava">T</div>
-      <div style="flex:1;"><div class="sb-name">Tab Lomo</div><div class="sb-role">CPT &middot; BCS</div></div>
-      <a href="#" title="Log out" onclick="logOut();return false;" style="color:rgba(255,255,255,0.55);font-size:12px;text-decoration:none;">&#8618;</a>
+    <div class="sb-foot" style="flex-direction:column;align-items:stretch;gap:12px;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <div class="sb-ava">T</div>
+        <div style="flex:1;"><div class="sb-name">Tab Lomo</div><div class="sb-role">CPT &middot; BCS</div></div>
+      </div>
+      <button onclick="logOut()" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.16);border-radius:10px;padding:10px;color:rgba(255,255,255,0.85);font-family:'Inter';font-size:12.5px;font-weight:600;cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.14)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H4.5A1.5 1.5 0 0 0 3 4.5v11A1.5 1.5 0 0 0 4.5 17H8"/><path d="M13 14l4-4-4-4"/><path d="M17 10H8"/></svg>
+        Log out
+      </button>
     </div>
   </div>
 
@@ -1006,8 +1012,7 @@ Coaching reminders:
         <div class="page-sub">Pick a client and a day, add exercises, save. Assigns straight to their app.</div>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start;">
-      <div class="card" style="padding:26px 28px;">
+      <div class="card" style="max-width:760px;padding:26px 28px;">
         <label class="field-lbl">Client</label>
         <select class="select-in" id="bClient" style="margin-bottom:16px;width:100%;"><option>Loading clients...</option></select>
 
@@ -1022,18 +1027,11 @@ Coaching reminders:
           </div>
         </div>
 
-        <label class="field-lbl">Exercises <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);">(start typing a name for suggestions)</span></label>
+        <label class="field-lbl">Exercises <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);">(start typing a name for suggestions from your library)</span></label>
         <div id="bExRows"></div>
         <button class="btn-sm" onclick="addBExRow()" style="margin:8px 0 20px;">+ Add exercise</button>
 
         <button class="btn-sm primary" style="width:100%;padding:13px;" onclick="saveWorkout()">Save &amp; assign workout</button>
-      </div>
-
-      <div class="card" style="padding:20px 20px 8px;">
-        <div class="panel-h" style="margin-bottom:10px;">Exercise library <span style="font-size:11px;color:var(--muted);font-weight:400" id="libCount"></span></div>
-        <input class="select-in" id="libSearch" placeholder="Search library..." style="width:100%;margin-bottom:10px;" oninput="renderLibraryList()">
-        <div id="libList" style="max-height:420px;overflow-y:auto;"></div>
-      </div>
       </div>
 
       <div class="sec-label" style="margin-top:26px;">Upcoming assigned workouts</div>
@@ -1042,6 +1040,45 @@ Coaching reminders:
       </div>
     </div>
     <datalist id="exLibDatalist"></datalist>
+
+    <!-- EXERCISE LIBRARY -->
+    <div class="page" id="library">
+      <div class="page-head">
+        <div class="page-title">Exercise <em>library</em></div>
+        <div class="page-sub" id="libPageSub">Every exercise you can pull into a workout. Add new ones here anytime.</div>
+      </div>
+
+      <div class="roster-tools">
+        <input class="search" id="libPageSearch" placeholder="Search by name, pattern, or muscle group..." oninput="renderLibraryPage()">
+        <button class="btn-sm primary" onclick="openExerciseModal()">+ Add exercise</button>
+      </div>
+
+      <div class="queue-card" id="libPageList" style="margin-top:16px;">
+        <div style="padding:20px;color:var(--muted);font-size:12.5px;">Loading...</div>
+      </div>
+    </div>
+
+    <div class="modal-back" id="exerciseModal" onclick="if(event.target===this)closeExerciseModal()">
+      <div class="modal">
+        <div class="modal-head">
+          <div><div class="modal-title">New exercise</div><div class="modal-sub">Add it once, use it in every workout from now on.</div></div>
+          <button class="modal-x" onclick="closeExerciseModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <label class="field-lbl">Name</label>
+          <input class="select-in" id="exName" placeholder="e.g. Cable Woodchop" style="width:100%;margin-bottom:14px;">
+          <label class="field-lbl">Movement pattern</label>
+          <input class="select-in" id="exPattern" placeholder="e.g. Core, Squat, Hinge" style="width:100%;margin-bottom:14px;">
+          <label class="field-lbl">Muscle group</label>
+          <input class="select-in" id="exMuscle" placeholder="e.g. Core, Quads, Chest" style="width:100%;margin-bottom:14px;">
+          <label class="field-lbl">Equipment</label>
+          <input class="select-in" id="exEquipment" placeholder="e.g. Cable, Dumbbell, Bodyweight" style="width:100%;margin-bottom:14px;">
+          <label class="field-lbl">Photo URL <span style="font-weight:400;text-transform:none;color:var(--muted);">(optional, paste a link, uploads aren't built yet)</span></label>
+          <input class="select-in" id="exImage" placeholder="https://..." style="width:100%;margin-bottom:18px;">
+          <button class="btn-sm primary" style="width:100%;padding:12px;" onclick="saveNewExercise()">Save exercise</button>
+        </div>
+      </div>
+    </div>
 
   </div>
 </div>
@@ -1329,8 +1366,8 @@ Coaching reminders:
 <div class="demo-note">Coach dashboard prototype &middot; Tab's side. Sidebar switches views. Click any flagged client to open detail. Bellamy: the AI assist surfaces insights &amp; drafts (sidebar), and the floating sunflower button bottom-right lets you ask about any client. Sample data throughout.</div>
 
 <script>
-  const pages=['home','pending','queue','roster','client','lens','announce','resources','desk','builder'];
-  const navMap={home:'nav-home',pending:'nav-pending',queue:'nav-queue',roster:'nav-roster',builder:'nav-builder',lens:'nav-lens',announce:'nav-announce',resources:'nav-resources',desk:'nav-desk'};
+  const pages=['home','pending','queue','roster','client','lens','announce','resources','desk','builder','library'];
+  const navMap={home:'nav-home',pending:'nav-pending',queue:'nav-queue',roster:'nav-roster',builder:'nav-builder',lens:'nav-lens',announce:'nav-announce',resources:'nav-resources',desk:'nav-desk',library:'nav-library'};
   function go(id){
     pages.forEach(p=>document.getElementById(p).classList.toggle('on',p===id));
     Object.values(navMap).forEach(n=>document.getElementById(n).classList.remove('on'));
@@ -1341,6 +1378,7 @@ Coaching reminders:
     if(id==='queue')loadQueue();
     if(id==='home'){loadHomeStats();loadHomeQueuePreview();}
     if(id==='builder'){loadBuilderClients();loadExerciseLibrary();}
+    if(id==='library'){loadExerciseLibraryPage();}
     document.querySelector('.main').scrollTop=0;
   }
   // ── Real check-in queue ──
@@ -1441,29 +1479,67 @@ Coaching reminders:
   async function loadExerciseLibrary(){
     const { data, error } = await supabaseClient.from('exercise_library').select('*').order('name', { ascending: true });
     exerciseLibrary = data || [];
-    document.getElementById('libCount').textContent = exerciseLibrary.length + ' exercises';
     document.getElementById('exLibDatalist').innerHTML = exerciseLibrary.map(e => `<option value="${e.name}">`).join('');
-    renderLibraryList();
   }
 
-  function renderLibraryList(){
-    const q = (document.getElementById('libSearch').value || '').toLowerCase();
-    const list = document.getElementById('libList');
-    const filtered = q ? exerciseLibrary.filter(e => e.name.toLowerCase().includes(q) || (e.muscle_group||'').toLowerCase().includes(q) || (e.pattern||'').toLowerCase().includes(q)) : exerciseLibrary;
+  function renderLibraryPage(){
+    const q = (document.getElementById('libPageSearch').value || '').toLowerCase();
+    const list = document.getElementById('libPageList');
+    document.getElementById('libPageSub').textContent = exerciseLibrary.length + ' exercises in your library. Add new ones here anytime.';
+    const filtered = q ? exerciseLibrary.filter(e => e.name.toLowerCase().includes(q) || (e.muscle_group||'').toLowerCase().includes(q) || (e.pattern||'').toLowerCase().includes(q) || (e.equipment||'').toLowerCase().includes(q)) : exerciseLibrary;
 
     if (!filtered.length){
-      list.innerHTML = '<div style="padding:10px 0;color:var(--muted);font-size:12px;">No matches.</div>';
+      list.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:12.5px;">No matches.</div>';
       return;
     }
-    list.innerHTML = filtered.slice(0,150).map(e => `
-      <div style="display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--border);">
-        ${e.image_url ? `<img src="${e.image_url}" style="width:32px;height:32px;border-radius:7px;object-fit:cover;flex-shrink:0;">` : `<div style="width:32px;height:32px;border-radius:7px;background:#efe9f2;flex-shrink:0;"></div>`}
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:12.5px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${e.name}</div>
-          <div style="font-size:10.5px;color:var(--muted);">${e.pattern||''}${e.muscle_group?' \u00b7 '+e.muscle_group:''}</div>
-        </div>
-        <button class="btn-sm" style="padding:5px 10px;font-size:11px;flex-shrink:0;" onclick='addBExRow(${JSON.stringify({name:e.name,pattern:e.pattern||""})})'>+ Add</button>
+    list.innerHTML = filtered.map(e => `
+      <div class="q-row" style="cursor:default;">
+        ${e.image_url ? `<img src="${e.image_url}" style="width:38px;height:38px;border-radius:9px;object-fit:cover;flex-shrink:0;">` : `<div style="width:38px;height:38px;border-radius:9px;background:#efe9f2;flex-shrink:0;"></div>`}
+        <div class="q-info"><div class="q-name">${e.name}</div><div class="q-detail">${e.pattern||'\u2014'}${e.muscle_group?' \u00b7 '+e.muscle_group:''}${e.equipment?' \u00b7 '+e.equipment:''}</div></div>
+        <button class="q-status st-red" style="border:none;cursor:pointer;font:inherit;" onclick="deleteExercise('${e.id}')">Delete</button>
       </div>`).join('');
+  }
+
+  async function loadExerciseLibraryPage(){
+    await loadExerciseLibrary();
+    renderLibraryPage();
+  }
+
+  function openExerciseModal(){
+    document.getElementById('exName').value = '';
+    document.getElementById('exPattern').value = '';
+    document.getElementById('exMuscle').value = '';
+    document.getElementById('exEquipment').value = '';
+    document.getElementById('exImage').value = '';
+    document.getElementById('exerciseModal').classList.add('open');
+  }
+  function closeExerciseModal(){
+    document.getElementById('exerciseModal').classList.remove('open');
+  }
+
+  async function saveNewExercise(){
+    const name = document.getElementById('exName').value.trim();
+    if (!name){ toast('Give the exercise a name'); return; }
+
+    const { error } = await supabaseClient.from('exercise_library').insert({
+      name,
+      pattern: document.getElementById('exPattern').value.trim() || null,
+      muscle_group: document.getElementById('exMuscle').value.trim() || null,
+      equipment: document.getElementById('exEquipment').value.trim() || null,
+      image_url: document.getElementById('exImage').value.trim() || null
+    });
+    if (error){ toast(error.message.includes('duplicate') ? 'That exercise already exists' : 'Something went wrong'); return; }
+
+    closeExerciseModal();
+    toast('Exercise added');
+    await loadExerciseLibrary();
+    renderLibraryPage();
+  }
+
+  async function deleteExercise(id){
+    await supabaseClient.from('exercise_library').delete().eq('id', id);
+    await loadExerciseLibrary();
+    renderLibraryPage();
   }
 
   function fillPatternFromLibrary(input){

@@ -189,6 +189,19 @@
   .reflect-ta{width:100%;padding:14px;font-family:'Inter';font-size:14px;border:1.5px solid var(--border);border-radius:12px;background:var(--paper);color:var(--text);outline:none;resize:none;min-height:88px;line-height:1.6;transition:border 0.2s;margin-bottom:16px;}
   .reflect-ta:focus{border-color:var(--purple-mid);}
   .submit-btn{display:block;width:100%;background:var(--plum);color:var(--white);border:none;border-radius:12px;padding:15px;font-family:'Inter';font-size:14px;font-weight:600;letter-spacing:0.5px;cursor:pointer;}
+
+  /* ── ASSESSMENT QUIZ ── */
+  .assess-dim-h{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--purple-rich);font-weight:700;margin:22px 0 10px;}
+  .assess-q{background:var(--paper);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:10px;}
+  .assess-q-text{font-size:13.5px;color:var(--text);margin-bottom:12px;line-height:1.5;}
+  .likert-row{display:flex;justify-content:space-between;align-items:center;gap:6px;}
+  .likert-end{font-size:9.5px;color:var(--muted);width:52px;line-height:1.3;}
+  .likert-end.r{text-align:right;}
+  .likert-opts{display:flex;gap:8px;flex:1;justify-content:center;}
+  .likert-btn{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--border);background:var(--paper);color:var(--ink-soft);font-family:'Inter';font-size:12.5px;font-weight:600;cursor:pointer;transition:all 0.15s;}
+  .likert-btn:hover{border-color:var(--purple-mid);}
+  .likert-btn.on{background:var(--plum);border-color:var(--plum);color:#fff;}
+  .assess-progress{position:sticky;top:0;background:var(--bg);padding:8px 0 12px;font-size:11.5px;color:var(--muted);font-weight:600;z-index:2;}
   .submit-btn:active{background:var(--plum-deep);}
   .submit-btn:disabled{opacity:0.4;cursor:not-allowed;}
   .done-state{text-align:center;padding:40px 20px;animation:fade 0.4s ease;}
@@ -409,10 +422,15 @@
       <button class="nav-item" id="nav-checkin" onclick="go('checkin')"><span class="nav-ico">&#9998;</span><span class="nav-lbl">Check-in</span></button>
       <button class="nav-item" id="nav-profile" onclick="go('profile')"><span class="nav-ico">&#9672;</span><span class="nav-lbl">Profile</span></button>
     </div>
-    <div class="sb-foot">
-      <div class="sb-ava">K</div>
-      <div style="flex:1;"><div class="sb-name">Loading...</div><div class="sb-role">Week 3 &middot; Rebuild</div></div>
-      <a href="#" title="Log out" onclick="logOut();return false;" style="color:rgba(255,255,255,0.55);font-size:12px;text-decoration:none;">&#8618;</a>
+    <div class="sb-foot" style="flex-direction:column;align-items:stretch;gap:12px;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <div class="sb-ava">K</div>
+        <div style="flex:1;"><div class="sb-name">Loading...</div><div class="sb-role">Week 3 &middot; Rebuild</div></div>
+      </div>
+      <button onclick="logOut()" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.16);border-radius:10px;padding:10px;color:rgba(255,255,255,0.85);font-family:'Inter';font-size:12.5px;font-weight:600;cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.14)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H4.5A1.5 1.5 0 0 0 3 4.5v11A1.5 1.5 0 0 0 4.5 17H8"/><path d="M13 14l4-4-4-4"/><path d="M17 10H8"/></svg>
+        Log out
+      </button>
     </div>
   </aside>
 
@@ -457,7 +475,7 @@
                 <div class="onb-step-body"><div class="onb-step-name">Complete your intake form</div><div class="onb-step-sub">Health history and where you're starting from</div></div>
                 <span class="onb-arrow">&rsaquo;</span>
               </div>
-              <div class="onb-step" onclick="onbToggle(this)">
+              <div class="onb-step" onclick="go('assessment')">
                 <div class="onb-check"></div>
                 <div class="onb-step-body"><div class="onb-step-name">Take your Signature Assessment</div><div class="onb-step-sub">25 questions &middot; shows you where you actually are</div></div>
                 <span class="onb-arrow">&rsaquo;</span>
@@ -619,19 +637,11 @@
     <div class="screen" id="profile">
       <div class="screen-h">Your Signature Profile</div>
       <div class="screen-p">Your honest mirror from onboarding. Where you started, so you can see how far you move.</div>
-      <div class="card assess-card">
-        <div class="assess-top"><div class="assess-tier"><small>Your tier</small>Emerging Alignment</div><div class="assess-score"><div class="assess-score-num">61</div><div class="assess-score-lbl">of 100</div></div></div>
-        <div class="dim"><div class="dim-row"><span class="dim-name">Identity&ndash;Action Alignment</span><span class="dim-pct">72%</span></div><div class="dim-track"><div class="dim-fill fill-hi" style="width:72%"></div></div></div>
-        <div class="dim"><div class="dim-row"><span class="dim-name">Self-Authorship</span><span class="dim-pct">68%</span></div><div class="dim-track"><div class="dim-fill fill-mid" style="width:68%"></div></div></div>
-        <div class="dim"><div class="dim-row"><span class="dim-name">Change Readiness</span><span class="dim-pct">64%</span></div><div class="dim-track"><div class="dim-fill fill-mid" style="width:64%"></div></div></div>
-        <div class="dim"><div class="dim-row"><span class="dim-name">Potential Activation</span><span class="dim-pct">56%</span></div><div class="dim-track"><div class="dim-fill fill-mid" style="width:56%"></div></div></div>
-        <div class="dim"><div class="dim-row"><span class="dim-name">Accountability Orientation</span><span class="dim-pct">44%</span></div><div class="dim-track"><div class="dim-fill fill-lo" style="width:44%"></div></div></div>
-        <div class="entry-note"><strong>Your coaching entry point:</strong> Accountability Orientation (44%) is where the most leverage is right now. Not your weakness. It's the door that opens the rest.</div>
-      </div>
+      <div id="assessSummary"><div class="card" style="padding:20px;color:#8a7a90;font-size:12.5px;">Loading...</div></div>
       <div class="card">
         <div class="profile-row"><div class="tool-ico soft" style="width:40px;height:40px;font-size:18px;"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#5a4a60" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2.5" width="12" height="15" rx="1.5"/><line x1="7" y1="6.5" x2="13" y2="6.5"/><line x1="7" y1="9.5" x2="13" y2="9.5"/><line x1="7" y1="12.5" x2="10.5" y2="12.5"/></svg></div><div class="tool-body"><div class="tool-title">Inner Work reflections</div><div class="tool-sub">Your onboarding journaling</div></div><div class="tool-arrow">&rsaquo;</div></div>
         <div class="profile-row"><div class="tool-ico soft" style="width:40px;height:40px;font-size:18px;">&#9881;</div><div class="tool-body"><div class="tool-title">Account &amp; settings</div><div class="tool-sub">Notifications, plan, privacy</div></div><div class="tool-arrow">&rsaquo;</div></div>
-        <div class="profile-row"><div class="tool-ico soft" style="width:40px;height:40px;font-size:18px;">&#8635;</div><div class="tool-body"><div class="tool-title">Retake assessment</div><div class="tool-sub">Usually every 8&ndash;12 weeks with Tab</div></div><div class="tool-arrow">&rsaquo;</div></div>
+        <div class="profile-row" style="cursor:pointer;" onclick="go('assessment')"><div class="tool-ico soft" style="width:40px;height:40px;font-size:18px;">&#8635;</div><div class="tool-body"><div class="tool-title">Retake assessment</div><div class="tool-sub">Usually every 8&ndash;12 weeks with Tab</div></div><div class="tool-arrow">&rsaquo;</div></div>
       </div>
       <div class="sec-label">Your coaching call</div>
       <div class="book-card">
@@ -697,6 +707,15 @@
       <div class="placeholder"><div class="placeholder-ico"><svg width="34" height="34" viewBox="0 0 20 20" fill="none" stroke="#8a7a90" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5a1.5 1.5 0 0 1 1.5-1.5h1.8l.9-1.5h5.6l.9 1.5h1.8A1.5 1.5 0 0 1 17 7.5v7A1.5 1.5 0 0 1 15.5 16h-11A1.5 1.5 0 0 1 3 14.5v-7z"/><circle cx="10" cy="10.8" r="2.7"/></svg></div><div class="placeholder-h">Snap a plate to begin</div><div class="placeholder-p">In the built app, this opens the camera and returns portion feedback. The engine reads the photo the way a coach eyeballs a plate.</div></div>
     </div>
 
+    <!-- SIGNATURE ASSESSMENT -->
+    <div class="screen" id="assessment">
+      <button class="back-btn" onclick="go('profile')">&larr; Profile</button>
+      <div class="screen-h">Your Signature Assessment</div>
+      <div class="screen-p">25 questions, answered honestly. There's no right answer, just an accurate one.</div>
+      <div id="assessForm"></div>
+      <button class="submit-btn" style="margin-top:10px;" onclick="submitAssessment()">See my results &rarr;</button>
+    </div>
+
   </div>
   </div>
 </div>
@@ -708,7 +727,7 @@
   </div>
 </div>
 <script>
-  const screens=['home','coaching','education','checkin','profile','log','plate'];
+  const screens=['home','coaching','education','checkin','profile','log','plate','assessment'];
   const navMap={home:'nav-home',coaching:'nav-coaching',education:'nav-education',checkin:'nav-checkin',profile:'nav-profile'};
   const headers={
     home:['Good morning,<br><em>{{NAME}}</em>','Week 3 \u00b7 Rebuild phase'],
@@ -717,7 +736,8 @@
     checkin:['Weekly <em>reflection</em>','The stepping stone'],
     profile:['Your <em>profile</em>','Who you are, where you are'],
     log:['Good morning,<br><em>{{NAME}}</em>','Week 3 \u00b7 Rebuild phase'],
-    plate:['<em>Coaching</em>','Your tools, all in one place']
+    plate:['<em>Coaching</em>','Your tools, all in one place'],
+    assessment:['Your <em>Signature</em> Assessment','25 questions, answered honestly']
   };
   function go(id){
     screens.forEach(s=>document.getElementById(s).classList.toggle('active',s===id));
@@ -728,6 +748,8 @@
     document.getElementById('headSub').textContent=h[1];
     if(id==='checkin'){resetCheckin();checkinTab('current');}
     if(id==='log'){startWorkout();} else {stopWorkoutTimer();}
+    if(id==='assessment'){assessAnswers={};renderAssessment();}
+    if(id==='profile'){loadAssessmentSummary();}
     document.getElementById('appBody').scrollTop=0;
   }
   function checkinTab(tab){
@@ -808,6 +830,154 @@
 
   // ── Real today's training ──
   let todaysWorkoutId = null;
+
+  // ── Signature Assessment ──
+  const ASSESS_DIMS = {
+    identity_action: 'Identity\u2013Action Alignment',
+    self_authorship: 'Self-Authorship',
+    change_readiness: 'Change Readiness',
+    potential_activation: 'Potential Activation',
+    accountability: 'Accountability Orientation'
+  };
+  const ASSESS_QUESTIONS = [
+    { dim:'identity_action', text:'My daily actions generally match the person I want to become.', reverse:false },
+    { dim:'identity_action', text:'When my schedule gets busy, my health habits are usually the first thing to slip.', reverse:true },
+    { dim:'identity_action', text:"I feel like myself when I'm consistent with my training and nutrition.", reverse:false },
+    { dim:'identity_action', text:'There is a noticeable gap between my goals and what I actually do day to day.', reverse:true },
+    { dim:'identity_action', text:'I make decisions based on who I want to be long-term, not just how I feel in the moment.', reverse:false },
+
+    { dim:'self_authorship', text:"I've thought carefully about why my goals actually matter to me.", reverse:false },
+    { dim:'self_authorship', text:'I mostly do what a coach or program tells me to do without questioning it.', reverse:true },
+    { dim:'self_authorship', text:'I can explain the "why" behind my training in my own words, not borrowed ones.', reverse:false },
+    { dim:'self_authorship', text:"I often feel like I'm going through the motions rather than choosing this path.", reverse:true },
+    { dim:'self_authorship', text:'I trust my own judgment about what works for my body and my life.', reverse:false },
+
+    { dim:'change_readiness', text:"I'm ready to make real changes to my routine, even uncomfortable ones.", reverse:false },
+    { dim:'change_readiness', text:"Part of me is still on the fence about whether I actually want to change right now.", reverse:true },
+    { dim:'change_readiness', text:"I've made real time and space for this, not just good intentions.", reverse:false },
+    { dim:'change_readiness', text:'Setbacks tend to derail my motivation for weeks at a time.', reverse:true },
+    { dim:'change_readiness', text:"I expect this to take real effort, and I'm prepared for that.", reverse:false },
+
+    { dim:'potential_activation', text:"I regularly push myself close to what I'm actually capable of.", reverse:false },
+    { dim:'potential_activation', text:'I hold back out of fear of failing or looking foolish.', reverse:true },
+    { dim:'potential_activation', text:"I've surprised myself with what I could do once I fully committed.", reverse:false },
+    { dim:'potential_activation', text:"I default to what's comfortable instead of what would actually challenge me.", reverse:true },
+    { dim:'potential_activation', text:"I feel like I'm using most of what I'm actually capable of right now.", reverse:false },
+
+    { dim:'accountability', text:'When I miss a workout or slip on nutrition, I take ownership rather than making excuses.', reverse:false },
+    { dim:'accountability', text:"I need someone else checking in on me or I probably won't follow through.", reverse:true },
+    { dim:'accountability', text:'I follow through on commitments to myself, not just commitments to other people.', reverse:false },
+    { dim:'accountability', text:"I tend to blame circumstances when things don't go as planned.", reverse:true },
+    { dim:'accountability', text:'I hold myself to the same standard whether or not anyone is watching.', reverse:false }
+  ];
+
+  function renderAssessment(){
+    const form = document.getElementById('assessForm');
+    let html = '<div class="assess-progress" id="assessProgress">0 of 25 answered</div>';
+    let currentDim = null;
+    ASSESS_QUESTIONS.forEach((q,i) => {
+      if (q.dim !== currentDim){
+        currentDim = q.dim;
+        html += `<div class="assess-dim-h">${ASSESS_DIMS[currentDim]}</div>`;
+      }
+      html += `<div class="assess-q">
+        <div class="assess-q-text">${q.text}</div>
+        <div class="likert-row">
+          <span class="likert-end">Disagree</span>
+          <div class="likert-opts">
+            ${[1,2,3,4,5].map(v => `<button type="button" class="likert-btn" data-q="${i}" data-v="${v}" onclick="pickLikert(${i},${v},this)">${v}</button>`).join('')}
+          </div>
+          <span class="likert-end r">Agree</span>
+        </div>
+      </div>`;
+    });
+    form.innerHTML = html;
+  }
+
+  let assessAnswers = {};
+  function pickLikert(qIndex, val, btn){
+    assessAnswers[qIndex] = val;
+    btn.parentNode.querySelectorAll('.likert-btn').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    document.getElementById('assessProgress').textContent = Object.keys(assessAnswers).length + ' of 25 answered';
+  }
+
+  async function submitAssessment(){
+    if (Object.keys(assessAnswers).length < ASSESS_QUESTIONS.length){
+      alert('A few questions are still unanswered, please rate all 25 before submitting.');
+      return;
+    }
+    const dimTotals = {}, dimCounts = {};
+    Object.keys(ASSESS_DIMS).forEach(d => { dimTotals[d]=0; dimCounts[d]=0; });
+
+    let overallTotal = 0;
+    ASSESS_QUESTIONS.forEach((q,i) => {
+      const raw = assessAnswers[i];
+      const scored = q.reverse ? (6 - raw) : raw;
+      dimTotals[q.dim] += scored;
+      dimCounts[q.dim] += 1;
+      overallTotal += scored;
+    });
+
+    const dimScores = {};
+    Object.keys(ASSESS_DIMS).forEach(d => {
+      dimScores[d] = Math.round(((dimTotals[d]/dimCounts[d] - 1) / 4) * 100);
+    });
+    const overallScore = Math.round(((overallTotal/ASSESS_QUESTIONS.length - 1) / 4) * 100);
+    const tier = overallScore >= 81 ? 'Full Alignment' : overallScore >= 61 ? 'Strong Alignment' : overallScore >= 41 ? 'Emerging Alignment' : 'Foundational Work';
+
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (session){
+      await supabaseClient.from('assessments').insert({
+        client_id: session.user.id,
+        answers: assessAnswers,
+        identity_action: dimScores.identity_action,
+        self_authorship: dimScores.self_authorship,
+        change_readiness: dimScores.change_readiness,
+        potential_activation: dimScores.potential_activation,
+        accountability: dimScores.accountability,
+        overall_score: overallScore,
+        tier: tier
+      });
+    }
+    assessAnswers = {};
+    go('profile');
+    loadAssessmentSummary();
+  }
+
+  function dimFillClass(pct){ return pct >= 66 ? 'fill-hi' : pct >= 40 ? 'fill-mid' : 'fill-lo'; }
+
+  async function loadAssessmentSummary(){
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    const el = document.getElementById('assessSummary');
+    if (!session) return;
+
+    const { data: rows } = await supabaseClient
+      .from('assessments').select('*').eq('client_id', session.user.id).order('created_at', { ascending:false }).limit(1);
+
+    if (!rows || !rows.length){
+      el.innerHTML = `<div class="card" style="text-align:center;padding:24px 20px;">
+        <div style="font-size:13.5px;color:var(--ink-soft);margin-bottom:14px;">You haven't taken your Signature Assessment yet.</div>
+        <button class="submit-btn" style="max-width:240px;margin:0 auto;" onclick="go('assessment')">Take the assessment &rarr;</button>
+      </div>`;
+      return;
+    }
+    const a = rows[0];
+    const dims = [
+      ['Identity\u2013Action Alignment', a.identity_action],
+      ['Self-Authorship', a.self_authorship],
+      ['Change Readiness', a.change_readiness],
+      ['Potential Activation', a.potential_activation],
+      ['Accountability Orientation', a.accountability]
+    ];
+    const lowest = dims.reduce((min,d) => d[1] < min[1] ? d : min, dims[0]);
+
+    el.innerHTML = `<div class="card assess-card">
+      <div class="assess-top"><div class="assess-tier"><small>Your tier</small>${a.tier}</div><div class="assess-score"><div class="assess-score-num">${a.overall_score}</div><div class="assess-score-lbl">of 100</div></div></div>
+      ${dims.map(([name,pct]) => `<div class="dim"><div class="dim-row"><span class="dim-name">${name}</span><span class="dim-pct">${pct}%</span></div><div class="dim-track"><div class="dim-fill ${dimFillClass(pct)}" style="width:${pct}%"></div></div></div>`).join('')}
+      <div class="entry-note"><strong>Your coaching entry point:</strong> ${lowest[0]} (${lowest[1]}%) is where the most leverage is right now. Not your weakness. It's the door that opens the rest.</div>
+    </div>`;
+  }
 
   async function loadTodaysWorkout(){
     const { data: { session } } = await supabaseClient.auth.getSession();
