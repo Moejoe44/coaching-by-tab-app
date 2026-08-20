@@ -746,6 +746,10 @@
             <div class="panel-h clickable"><span>Training</span><button class="btn-sm primary" style="padding:6px 13px;font-size:11.5px;" onclick="go('builder')">+ Assign workout</button></div>
             <div id="cdWorkouts"><div style="padding:10px 0;color:var(--muted);font-size:12.5px;">Loading...</div></div>
           </div>
+          <div class="panel" style="margin-top:20px;">
+            <div class="panel-h clickable"><span>Nutrition</span><button class="btn-sm primary" style="padding:6px 13px;font-size:11.5px;" onclick="openAssignRecipeModal()">+ Assign recipe</button></div>
+            <div id="cdRecipes"><div style="padding:10px 0;color:var(--muted);font-size:12.5px;">Loading...</div></div>
+          </div>
         </div>
       </div>
     </div>
@@ -1174,6 +1178,19 @@ Coaching reminders:
             <button class="btn-sm primary" style="flex:1;padding:12px;" onclick="saveRecipe()">Save recipe</button>
             <button class="btn-sm st-red" id="recDeleteBtn" style="padding:12px 18px;display:none;" onclick="deleteRecipeFromModal()">Delete</button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-back" id="assignRecModal" onclick="if(event.target===this)closeAssignRecipeModal()">
+      <div class="modal" style="max-width:480px;">
+        <div class="modal-head">
+          <div><div class="modal-title">Assign a recipe</div><div class="modal-sub" id="assignRecSub">Pick anything from your recipe library.</div></div>
+          <button class="modal-x" onclick="closeAssignRecipeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <input class="select-in" id="assignRecSearch" placeholder="Search recipes..." style="width:100%;margin-bottom:14px;" oninput="renderAssignRecipeList()">
+          <div id="assignRecList" style="max-height:360px;overflow-y:auto;"></div>
         </div>
       </div>
     </div>
@@ -1968,6 +1985,73 @@ Coaching reminders:
 
   function dimFillClass(pct){ return pct >= 66 ? 'fill-hi' : pct >= 40 ? 'fill-mid' : 'fill-lo'; }
 
+  // ── Client recipe assignments ──
+  async function loadClientRecipes(clientId){
+    const el = document.getElementById('cdRecipes');
+    const { data: rows, error } = await supabaseClient
+      .from('client_recipes').select('id, recipe_id, recipe_library(name, category, calories)')
+      .eq('client_id', clientId).order('assigned_at', { ascending: false });
+
+    if (error || !rows || !rows.length){
+      el.innerHTML = '<div style="padding:10px 0;color:var(--muted);font-size:12.5px;">No recipes assigned yet.</div>';
+      return;
+    }
+    el.innerHTML = rows.map(r => {
+      const rec = r.recipe_library;
+      if (!rec) return '';
+      return `<div class="assign-item"><span class="assign-dot"></span><span class="assign-day">${rec.name} \u00b7 ${rec.category||''}${rec.calories?' \u00b7 '+rec.calories+' cal':''}</span><span class="assign-check" style="cursor:pointer;" onclick="unassignRecipe('${r.id}')">Remove &times;</span></div>`;
+    }).join('');
+  }
+
+  async function unassignRecipe(linkId){
+    await supabaseClient.from('client_recipes').delete().eq('id', linkId);
+    loadClientRecipes(cdCurrentClientId);
+  }
+
+  function openAssignRecipeModal(){
+    document.getElementById('assignRecSearch').value = '';
+    document.getElementById('assignRecModal').classList.add('open');
+    if (!recipeLibrary.length){
+      supabaseClient.from('recipe_library').select('*').order('name', { ascending: true }).then(({data}) => {
+        recipeLibrary = data || [];
+        renderAssignRecipeList();
+      });
+    } else {
+      renderAssignRecipeList();
+    }
+  }
+  function closeAssignRecipeModal(){
+    document.getElementById('assignRecModal').classList.remove('open');
+  }
+
+  function renderAssignRecipeList(){
+    const q = (document.getElementById('assignRecSearch').value || '').toLowerCase();
+    const list = document.getElementById('assignRecList');
+    const filtered = q ? recipeLibrary.filter(r => r.name.toLowerCase().includes(q) || (r.category||'').toLowerCase().includes(q)) : recipeLibrary;
+
+    if (!filtered.length){
+      list.innerHTML = '<div style="padding:10px 0;color:var(--muted);font-size:12.5px;">No matches.</div>';
+      return;
+    }
+    list.innerHTML = filtered.map(r => `
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--border);">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:12.5px;font-weight:600;color:var(--text);">${r.name}</div>
+          <div style="font-size:10.5px;color:var(--muted);">${r.category||''}${r.calories?' \u00b7 '+r.calories+' cal':''}</div>
+        </div>
+        <button class="btn-sm primary" style="padding:5px 12px;font-size:11px;flex-shrink:0;" onclick="assignRecipeToClient('${r.id}')">+ Assign</button>
+      </div>`).join('');
+  }
+
+  async function assignRecipeToClient(recipeId){
+    if (!cdCurrentClientId) return;
+    const { error } = await supabaseClient.from('client_recipes').insert({ client_id: cdCurrentClientId, recipe_id: recipeId });
+    if (error && !error.message.includes('duplicate')){ toast('Something went wrong'); return; }
+    toast(error ? 'Already assigned' : 'Recipe assigned');
+    closeAssignRecipeModal();
+    loadClientRecipes(cdCurrentClientId);
+  }
+
   async function loadClientAssessment(clientId){
     const el = document.getElementById('cdAssessment');
     const { data: rows } = await supabaseClient
@@ -2040,6 +2124,7 @@ Coaching reminders:
     ]);
     loadCoachNotes(clientId);
     loadClientAssessment(clientId);
+    loadClientRecipes(clientId);
 
     if (!profile){ document.getElementById('cdName').textContent = 'Client not found'; return; }
 
