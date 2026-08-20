@@ -263,13 +263,36 @@
     </div>
   </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  function startConsult(e){
+  const SUPABASE_URL = 'https://kgesumyyfozjiiuknqtg.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_oOIHDYSxtecasE-cKjeudA_ckzda4Pe';
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  async function startConsult(e){
     e.preventDefault();
     const id = e.target.querySelector('input[type=email]').id;
-    const email=document.getElementById(id).value.trim();
+    const input = document.getElementById(id);
+    const email = input.value.trim();
     if(!email) return false;
-    alert('Thanks! This form is a design preview right now. Once the backend is connected, submitting here will notify Tab and follow up with '+email+'.');
+
+    const btn = e.target.querySelector('button[type=submit]');
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+
+    const { error } = await supabaseClient.from('consultations').insert({ email });
+
+    btn.disabled = false;
+    btn.textContent = originalText;
+
+    if (error){
+      alert('Something went wrong, please try again.');
+      return false;
+    }
+
+    input.value = '';
+    alert('Thanks! Tab will follow up with you at '+email+' soon.');
     return false;
   }
 

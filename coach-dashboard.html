@@ -543,6 +543,7 @@
     const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', session.user.id).single();
     if (!profile || profile.role !== 'coach') { window.location.href = 'signin.html'; return; }
     refreshPendingBadge();
+    refreshLeadsBadge();
     loadHomeQueuePreview();
     loadQueue();
     loadHomeStats();
@@ -603,6 +604,50 @@
     const remaining = document.getElementById('pendingList').children.length;
     if (!remaining) document.getElementById('pendingList').innerHTML = '<div style="padding:20px;color:#8a7a90;font-size:12.5px;">No pending sign-ups right now.</div>';
   }
+
+  // ── Consultation leads ──
+  async function refreshLeadsBadge(){
+    const { count } = await supabaseClient
+      .from('consultations').select('id', { count: 'exact', head: true }).eq('contacted', false);
+    const badge = document.getElementById('leadsCount');
+    if (count && count > 0){
+      badge.textContent = count;
+      badge.style.display = 'inline-block';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  async function loadLeads(){
+    const list = document.getElementById('leadsList');
+    const { data: rows, error } = await supabaseClient
+      .from('consultations').select('*').order('created_at', { ascending: false });
+
+    if (error){
+      list.innerHTML = '<div style="padding:20px;color:#b0574f;font-size:12.5px;">Couldn\u2019t load leads.</div>';
+      return;
+    }
+    if (!rows.length){
+      list.innerHTML = '<div style="padding:20px;color:#8a7a90;font-size:12.5px;">No consultation requests yet.</div>';
+      return;
+    }
+    list.innerHTML = rows.map(r => {
+      const when = new Date(r.created_at).toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' });
+      return `<div class="q-row" id="lead-${r.id}" style="cursor:default;">
+        <div class="q-ava">${r.email.charAt(0).toUpperCase()}</div>
+        <div class="q-info"><div class="q-name">${r.email}</div><div class="q-detail">Requested ${when}</div></div>
+        ${r.contacted
+          ? '<span class="q-status" style="background:var(--green-bg,#eef4ef);color:var(--green,#5f8f6b);">Contacted</span>'
+          : `<button class="q-status" style="cursor:pointer;border:none;font:inherit;background:var(--green-bg,#eef4ef);color:var(--green,#5f8f6b);" onclick="markContacted('${r.id}')">Mark contacted</button>`}
+      </div>`;
+    }).join('');
+  }
+
+  async function markContacted(id){
+    await supabaseClient.from('consultations').update({ contacted: true }).eq('id', id);
+    loadLeads();
+    refreshLeadsBadge();
+  }
 </script>
 <div class="app">
   <!-- SIDEBAR -->
@@ -612,6 +657,7 @@
     <div class="sb-nav">
       <button class="sb-item on" id="nav-home" onclick="go('home')"><span class="sb-ico">&#9632;</span><span>Dashboard</span></button>
       <button class="sb-item" id="nav-pending" onclick="go('pending')"><span class="sb-ico">&#10068;</span><span>Pending sign-ups</span><span class="sb-count" id="pendingCount" style="display:none;">0</span></button>
+      <button class="sb-item" id="nav-leads" onclick="go('leads')"><span class="sb-ico">&#9993;</span><span>Consultation leads</span><span class="sb-count" id="leadsCount" style="display:none;">0</span></button>
       <button class="sb-item" id="nav-queue" onclick="go('queue')"><span class="sb-ico">&#9873;</span><span>Check-in queue</span><span class="sb-count">3</span></button>
       <button class="sb-item" id="nav-roster" onclick="go('roster')"><span class="sb-ico">&#9783;</span><span>Clients</span></button>
       <button class="sb-item" id="nav-builder" onclick="go('builder')"><span class="sb-ico">&#9998;</span><span>Workout builder</span></button>
@@ -678,6 +724,17 @@
         <div class="page-sub">New accounts waiting on your approval before they get dashboard access.</div>
       </div>
       <div class="queue-card" id="pendingList">
+        <div style="padding:20px;color:#8a7a90;font-size:12.5px;">Loading...</div>
+      </div>
+    </div>
+
+    <!-- CONSULTATION LEADS -->
+    <div class="page" id="leads">
+      <div class="page-head">
+        <div class="page-title">Consultation <em>leads</em></div>
+        <div class="page-sub">Everyone who submitted their email on your landing page, waiting for you to reach out.</div>
+      </div>
+      <div class="queue-card" id="leadsList">
         <div style="padding:20px;color:#8a7a90;font-size:12.5px;">Loading...</div>
       </div>
     </div>
@@ -1507,14 +1564,15 @@ Coaching reminders:
 <div class="demo-note">Coach dashboard prototype &middot; Tab's side. Sidebar switches views. Click any flagged client to open detail. Bellamy: the AI assist surfaces insights &amp; drafts (sidebar), and the floating sunflower button bottom-right lets you ask about any client. Sample data throughout.</div>
 
 <script>
-  const pages=['home','pending','queue','roster','client','lens','announce','resources','desk','builder','library','recipes'];
-  const navMap={home:'nav-home',pending:'nav-pending',queue:'nav-queue',roster:'nav-roster',builder:'nav-builder',lens:'nav-lens',announce:'nav-announce',resources:'nav-resources',desk:'nav-desk',library:'nav-library',recipes:'nav-recipes'};
+  const pages=['home','pending','leads','queue','roster','client','lens','announce','resources','desk','builder','library','recipes'];
+  const navMap={home:'nav-home',pending:'nav-pending',leads:'nav-leads',queue:'nav-queue',roster:'nav-roster',builder:'nav-builder',lens:'nav-lens',announce:'nav-announce',resources:'nav-resources',desk:'nav-desk',library:'nav-library',recipes:'nav-recipes'};
   function go(id){
     pages.forEach(p=>document.getElementById(p).classList.toggle('on',p===id));
     Object.values(navMap).forEach(n=>document.getElementById(n).classList.remove('on'));
     if(navMap[id])document.getElementById(navMap[id]).classList.add('on');
     if(id==='desk')renderCal();
     if(id==='pending')loadPending();
+    if(id==='leads')loadLeads();
     if(id==='roster')loadRoster();
     if(id==='queue')loadQueue();
     if(id==='home'){loadHomeStats();loadHomeQueuePreview();}
