@@ -113,6 +113,12 @@
   .btn-sm:hover{border-color:var(--purple-mid);}
   .btn-sm.primary{background:var(--plum);color:#fff;border-color:var(--plum);}
   .detail-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:20px;}
+  .assess-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  .assess-tier{font-family:'Fraunces',serif;font-size:16px;font-weight:600;color:var(--plum);}
+  .assess-tier small{display:block;font-family:'Inter';font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--purple-rich);font-weight:600;margin-bottom:4px;}
+  .assess-score{text-align:right;}
+  .assess-score-num{font-family:'Fraunces',serif;font-size:30px;font-weight:700;color:var(--plum);line-height:1;}
+  .assess-score-lbl{font-size:10px;color:var(--muted);letter-spacing:0.5px;}
   .dim{margin-bottom:11px;}
   .dim-row{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;}
   .dim-name{color:var(--ink-soft);font-weight:500;}
@@ -719,8 +725,8 @@
         </div>
         <div>
           <div class="panel">
-            <div class="panel-h">Signature Profile <span style="font-size:11px;color:var(--muted);font-weight:400">(not built yet)</span></div>
-            <div style="padding:10px 0;color:var(--muted);font-size:12.5px;">The Signature Assessment tool hasn't been built yet, so there's no real score to show here.</div>
+            <div class="panel-h">Signature Profile</div>
+            <div id="cdAssessment"><div style="padding:10px 0;color:var(--muted);font-size:12.5px;">Loading...</div></div>
           </div>
           <div class="panel" style="margin-top:20px;">
             <div class="panel-h">Active goals <span style="font-size:11px;color:var(--muted);font-weight:400">(syncs to her app)</span></div>
@@ -1000,7 +1006,8 @@ Coaching reminders:
         <div class="page-sub">Pick a client and a day, add exercises, save. Assigns straight to their app.</div>
       </div>
 
-      <div class="card" style="max-width:760px;padding:26px 28px;">
+      <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start;">
+      <div class="card" style="padding:26px 28px;">
         <label class="field-lbl">Client</label>
         <select class="select-in" id="bClient" style="margin-bottom:16px;width:100%;"><option>Loading clients...</option></select>
 
@@ -1015,11 +1022,18 @@ Coaching reminders:
           </div>
         </div>
 
-        <label class="field-lbl">Exercises</label>
+        <label class="field-lbl">Exercises <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);">(start typing a name for suggestions)</span></label>
         <div id="bExRows"></div>
         <button class="btn-sm" onclick="addBExRow()" style="margin:8px 0 20px;">+ Add exercise</button>
 
         <button class="btn-sm primary" style="width:100%;padding:13px;" onclick="saveWorkout()">Save &amp; assign workout</button>
+      </div>
+
+      <div class="card" style="padding:20px 20px 8px;">
+        <div class="panel-h" style="margin-bottom:10px;">Exercise library <span style="font-size:11px;color:var(--muted);font-weight:400" id="libCount"></span></div>
+        <input class="select-in" id="libSearch" placeholder="Search library..." style="width:100%;margin-bottom:10px;" oninput="renderLibraryList()">
+        <div id="libList" style="max-height:420px;overflow-y:auto;"></div>
+      </div>
       </div>
 
       <div class="sec-label" style="margin-top:26px;">Upcoming assigned workouts</div>
@@ -1027,6 +1041,7 @@ Coaching reminders:
         <div style="padding:20px;color:var(--muted);font-size:12.5px;">Pick a client above to see their assigned workouts.</div>
       </div>
     </div>
+    <datalist id="exLibDatalist"></datalist>
 
   </div>
 </div>
@@ -1325,7 +1340,7 @@ Coaching reminders:
     if(id==='roster')loadRoster();
     if(id==='queue')loadQueue();
     if(id==='home'){loadHomeStats();loadHomeQueuePreview();}
-    if(id==='builder')loadBuilderClients();
+    if(id==='builder'){loadBuilderClients();loadExerciseLibrary();}
     document.querySelector('.main').scrollTop=0;
   }
   // ── Real check-in queue ──
@@ -1403,21 +1418,60 @@ Coaching reminders:
   // ── Real workout builder ──
   let bExCount = 0;
 
-  function addBExRow(){
+  function addBExRow(prefill){
     bExCount++;
     const id = 'bex-' + bExCount;
     const row = document.createElement('div');
     row.id = id;
     row.style.cssText = 'display:flex;gap:8px;margin-bottom:8px;align-items:center;';
     row.innerHTML = `
-      <input class="select-in" placeholder="Exercise name" style="flex:2;" data-f="name">
-      <input class="select-in" placeholder="Pattern" style="flex:1.2;" data-f="pattern">
+      <input class="select-in" placeholder="Exercise name" style="flex:2;" data-f="name" list="exLibDatalist" onchange="fillPatternFromLibrary(this)" value="${prefill?prefill.name:''}">
+      <input class="select-in" placeholder="Pattern" style="flex:1.2;" data-f="pattern" value="${prefill?prefill.pattern||'':''}">
       <input class="select-in" type="number" placeholder="Sets" style="width:66px;" data-f="sets" value="3">
       <input class="select-in" placeholder="Reps" style="width:70px;" data-f="reps" value="10">
       <input class="select-in" placeholder="RPE" style="width:60px;" data-f="rpe">
       <input class="select-in" type="number" placeholder="Rest s" style="width:70px;" data-f="rest">
       <button class="bex-x" onclick="document.getElementById('${id}').remove()" style="border:none;background:none;color:var(--muted);font-size:18px;cursor:pointer;">&times;</button>`;
     document.getElementById('bExRows').appendChild(row);
+  }
+
+  // ── Exercise library ──
+  let exerciseLibrary = [];
+
+  async function loadExerciseLibrary(){
+    const { data, error } = await supabaseClient.from('exercise_library').select('*').order('name', { ascending: true });
+    exerciseLibrary = data || [];
+    document.getElementById('libCount').textContent = exerciseLibrary.length + ' exercises';
+    document.getElementById('exLibDatalist').innerHTML = exerciseLibrary.map(e => `<option value="${e.name}">`).join('');
+    renderLibraryList();
+  }
+
+  function renderLibraryList(){
+    const q = (document.getElementById('libSearch').value || '').toLowerCase();
+    const list = document.getElementById('libList');
+    const filtered = q ? exerciseLibrary.filter(e => e.name.toLowerCase().includes(q) || (e.muscle_group||'').toLowerCase().includes(q) || (e.pattern||'').toLowerCase().includes(q)) : exerciseLibrary;
+
+    if (!filtered.length){
+      list.innerHTML = '<div style="padding:10px 0;color:var(--muted);font-size:12px;">No matches.</div>';
+      return;
+    }
+    list.innerHTML = filtered.slice(0,150).map(e => `
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--border);">
+        ${e.image_url ? `<img src="${e.image_url}" style="width:32px;height:32px;border-radius:7px;object-fit:cover;flex-shrink:0;">` : `<div style="width:32px;height:32px;border-radius:7px;background:#efe9f2;flex-shrink:0;"></div>`}
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:12.5px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${e.name}</div>
+          <div style="font-size:10.5px;color:var(--muted);">${e.pattern||''}${e.muscle_group?' \u00b7 '+e.muscle_group:''}</div>
+        </div>
+        <button class="btn-sm" style="padding:5px 10px;font-size:11px;flex-shrink:0;" onclick='addBExRow(${JSON.stringify({name:e.name,pattern:e.pattern||""})})'>+ Add</button>
+      </div>`).join('');
+  }
+
+  function fillPatternFromLibrary(input){
+    const row = input.closest('div');
+    const patternInput = row.querySelector('[data-f="pattern"]');
+    if (patternInput.value.trim()) return;
+    const match = exerciseLibrary.find(e => e.name.toLowerCase() === input.value.trim().toLowerCase());
+    if (match && match.pattern) patternInput.value = match.pattern;
   }
 
   async function loadBuilderClients(){
@@ -1469,6 +1523,21 @@ Coaching reminders:
     const { error: exErr } = await supabaseClient.from('workout_exercises').insert(exRows);
 
     if (exErr){ toast('Workout saved, but exercises failed to save'); return; }
+
+    const newToLibrary = exercises.filter(e =>
+      !exerciseLibrary.some(lib => lib.name.toLowerCase() === e.name.toLowerCase())
+    );
+    if (newToLibrary.length){
+      const seen = new Set();
+      const inserts = newToLibrary.filter(e => {
+        const k = e.name.toLowerCase();
+        if (seen.has(k)) return false;
+        seen.add(k);
+        return true;
+      }).map(e => ({ name: e.name, pattern: e.pattern || null }));
+      await supabaseClient.from('exercise_library').insert(inserts);
+      loadExerciseLibrary();
+    }
 
     toast('Workout assigned');
     document.getElementById('bDayLabel').value = '';
@@ -1575,6 +1644,31 @@ Coaching reminders:
 
   let cdCurrentClientId = null;
 
+  function dimFillClass(pct){ return pct >= 66 ? 'fill-hi' : pct >= 40 ? 'fill-mid' : 'fill-lo'; }
+
+  async function loadClientAssessment(clientId){
+    const el = document.getElementById('cdAssessment');
+    const { data: rows } = await supabaseClient
+      .from('assessments').select('*').eq('client_id', clientId).order('created_at', { ascending:false }).limit(1);
+
+    if (!rows || !rows.length){
+      el.innerHTML = '<div style="padding:10px 0;color:var(--muted);font-size:12.5px;">This client hasn\u2019t completed their Signature Assessment yet.</div>';
+      return;
+    }
+    const a = rows[0];
+    const dims = [
+      ['Identity\u2013Action', a.identity_action],
+      ['Self-Authorship', a.self_authorship],
+      ['Change Readiness', a.change_readiness],
+      ['Potential Activation', a.potential_activation],
+      ['Accountability', a.accountability]
+    ];
+    el.innerHTML = `
+      <div class="assess-top"><div class="assess-tier"><small>Tier</small>${a.tier}</div><div class="assess-score"><div class="assess-score-num">${a.overall_score}</div><div class="assess-score-lbl">of 100</div></div></div>
+      ${dims.map(([name,pct]) => `<div class="dim"><div class="dim-row"><span class="dim-name">${name}</span><span class="dim-pct">${pct}%</span></div><div class="dim-track"><div class="dim-fill ${dimFillClass(pct)}" style="width:${pct}%"></div></div></div>`).join('')}
+    `;
+  }
+
   async function loadCoachNotes(clientId){
     const { data: notes, error } = await supabaseClient
       .from('coach_notes').select('*').eq('client_id', clientId).order('updated_at', { ascending: false });
@@ -1623,6 +1717,7 @@ Coaching reminders:
       supabaseClient.from('workouts').select('*, workout_exercises(id)').eq('client_id', clientId).gte('scheduled_date', todayLocal()).order('scheduled_date', { ascending: true })
     ]);
     loadCoachNotes(clientId);
+    loadClientAssessment(clientId);
 
     if (!profile){ document.getElementById('cdName').textContent = 'Client not found'; return; }
 
